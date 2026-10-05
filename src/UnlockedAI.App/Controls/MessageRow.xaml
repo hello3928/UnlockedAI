@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="UnlockedAI.Controls.MessageRow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="using:UnlockedAI.Controls"
+    IsTabStop="False">
+
+    <Border
+        x:Name="Root"
+        Padding="{StaticResource InsetMessage}"
+        Background="{StaticResource TransparentBrush}"
+        CornerRadius="{StaticResource RadiusPanel}">
+
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="RoleStates">
+                <VisualState x:Name="Assistant" />
+                <VisualState x:Name="User">
+                    <VisualState.Setters>
+                        <Setter Target="Root.Background" Value="{StaticResource CardBrush}" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+        <StackPanel Spacing="{StaticResource Space1}">
+            <Grid MinHeight="{StaticResource ControlHeightCompact}">
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Style="{StaticResource CaptionStrongText}"
+                    Text="{x:Bind Message.RoleLabel, Mode=OneWay}" />
+                <ui:IconButton
+                    HorizontalAlignment="Right"
+                    Click="OnCopyClick"
+                    Icon="Copy"
+                    IsCompact="True"
+                    Label="Copy message"
+                    Visibility="{x:Bind ui:Visible.IfNot(Message.IsStreaming), Mode=OneWay}" />
+            </Grid>
+
+            <TextBlock
+                IsTextSelectionEnabled="True"
+                Style="{StaticResource BodyText}"
+                Text="{x:Bind Message.Text, Mode=OneWay}"
+                Visibility="{x:Bind ui:Visible.IfText(Message.Text), Mode=OneWay}" />
+
+            <ui:BusyIndicator
+                HorizontalAlignment="Left"
+                AutomationProperties.Name="Writing a reply"
+                IsActive="{x:Bind Message.IsStreaming, Mode=OneWay}"
+                Visibility="{x:Bind ui:Visible.If(Message.IsStreaming), Mode=OneWay}" />
+        </StackPanel>
+    </Border>
+</UserControl>

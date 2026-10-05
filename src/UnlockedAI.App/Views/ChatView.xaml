@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="UnlockedAI.Views.ChatView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="using:UnlockedAI.Controls"
+    xmlns:vm="using:UnlockedAI.ViewModels"
+    IsTabStop="False">
+
+    <UserControl.KeyboardAccelerators>
+        <KeyboardAccelerator Key="Escape" Invoked="OnEscapeInvoked" />
+    </UserControl.KeyboardAccelerators>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ui:ErrorMessage
+            Grid.Row="0"
+            MaxWidth="{StaticResource ReadingWidth}"
+            Margin="{StaticResource InsetPageTop}"
+            DismissCommand="{x:Bind ViewModel.DismissErrorCommand, Mode=OneWay}"
+            Error="{x:Bind ViewModel.Error, Mode=OneWay}"
+            RetryCommand="{x:Bind ViewModel.RetryCommand, Mode=OneWay}" />
+
+        <ListView
+            x:Name="MessageList"
+            Grid.Row="1"
+            Padding="{StaticResource InsetList}"
+            AutomationProperties.Name="Messages"
+            IsItemClickEnabled="False"
+            ItemContainerStyle="{StaticResource PlainListItemStyle}"
+            ItemsSource="{x:Bind ViewModel.Messages, Mode=OneWay}"
+            SelectionMode="None">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <ItemsStackPanel ItemsUpdatingScrollMode="KeepLastItemInView" />
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="vm:MessageViewModel">
+                    <ui:MessageRow MaxWidth="{StaticResource ReadingWidth}" Message="{x:Bind}" />
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <ui:EmptyState
+            Title="What do you want to ask?"
+            Grid.Row="1"
+            Icon="Chat"
+            Message="Enter sends. Shift+Enter adds a line."
+            Visibility="{x:Bind ui:Visible.If(ViewModel.IsEmpty), Mode=OneWay}" />
+
+        <ui:Composer
+            x:Name="MessageComposer"
+            Grid.Row="2"
+            MaxWidth="{StaticResource ReadingWidth}"
+            Margin="{StaticResource InsetPageBottom}"
+            IsBusy="{x:Bind ViewModel.IsGenerating, Mode=OneWay}"
+            PlaceholderText="Message"
+            SendCommand="{x:Bind ViewModel.SendCommand, Mode=OneWay}"
+            StopCommand="{x:Bind ViewModel.StopCommand, Mode=OneWay}"
+            Text="{x:Bind ViewModel.Draft, Mode=TwoWay}" />
+    </Grid>
+</UserControl>

@@ -13,6 +13,7 @@
                 <ResourceDictionary Source="ms-appx:///Theme/Text.xaml" />
                 <ResourceDictionary Source="ms-appx:///Theme/Buttons.xaml" />
                 <ResourceDictionary Source="ms-appx:///Theme/Containers.xaml" />
+                <ResourceDictionary Source="ms-appx:///Theme/Lists.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
