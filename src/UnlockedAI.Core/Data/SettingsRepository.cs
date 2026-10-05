@@ -17,6 +17,7 @@ public sealed class SettingsRepository(Database database) : RepositoryBase(datab
     private const string CommandTimeoutSeconds = "command_timeout_seconds";
     private const string WorkingDirectory = "working_directory";
     private const string DisabledTools = "disabled_tools";
+    private const string ToolsEnabled = "tools_enabled";
 
     public Task<AppSettings> LoadAsync(CancellationToken cancellationToken = default) =>
         Database.RunAsync(
@@ -74,6 +75,9 @@ public sealed class SettingsRepository(Database database) : RepositoryBase(datab
                 : defaults.ApprovalMode,
             CommandTimeoutSeconds = ReadInt(rows, CommandTimeoutSeconds, defaults.CommandTimeoutSeconds),
             WorkingDirectory = rows.GetValueOrDefault(WorkingDirectory, defaults.WorkingDirectory),
+            ToolsEnabled = rows.TryGetValue(ToolsEnabled, out var toolsOn) && bool.TryParse(toolsOn, out var on)
+                ? on
+                : defaults.ToolsEnabled,
             DisabledTools = rows.TryGetValue(DisabledTools, out var tools)
                 ? tools.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToHashSet(StringComparer.Ordinal)
                 : defaults.DisabledTools,
@@ -91,6 +95,7 @@ public sealed class SettingsRepository(Database database) : RepositoryBase(datab
         yield return (ApprovalModeKey, settings.ApprovalMode.ToString());
         yield return (CommandTimeoutSeconds, settings.CommandTimeoutSeconds.ToString(CultureInfo.InvariantCulture));
         yield return (WorkingDirectory, settings.WorkingDirectory);
+        yield return (ToolsEnabled, settings.ToolsEnabled.ToString());
         yield return (DisabledTools, string.Join(',', settings.DisabledTools.Order(StringComparer.Ordinal)));
     }
 

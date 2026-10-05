@@ -4,7 +4,7 @@ using UnlockedAI.Core.Models;
 namespace UnlockedAI.ViewModels;
 
 /// <summary>One user or assistant message as shown in the chat.</summary>
-public sealed partial class MessageViewModel : ObservableObject
+public sealed partial class MessageViewModel : ChatItemViewModel
 {
     public MessageViewModel(ChatRole role, string text = "")
     {

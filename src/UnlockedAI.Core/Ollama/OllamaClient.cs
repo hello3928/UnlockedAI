@@ -15,6 +15,12 @@ namespace UnlockedAI.Core.Ollama;
 /// </summary>
 public sealed class OllamaClient : IOllamaClient, IDisposable
 {
+    /// <summary>
+    /// Longest reply, in tokens (roughly 3,000 words). Without a limit, a model that gets stuck
+    /// repeating itself never stops, and Ollama stays busy with it even after the app gives up.
+    /// </summary>
+    public const int MaxReplyTokens = 4096;
+
     private static readonly TimeSpan ListTimeout = TimeSpan.FromSeconds(10);
 
     private readonly HttpClient _http;
@@ -126,7 +132,10 @@ public sealed class OllamaClient : IOllamaClient, IDisposable
 
                     if (chunk.Done)
                     {
-                        yield return new ModelDone(chunk.PromptEvalCount ?? 0, chunk.EvalCount ?? 0);
+                        yield return new ModelDone(
+                            chunk.PromptEvalCount ?? 0,
+                            chunk.EvalCount ?? 0,
+                            HitLengthLimit: chunk.DoneReason == "length");
                     }
                 }
             }
@@ -157,7 +166,12 @@ public sealed class OllamaClient : IOllamaClient, IDisposable
             Model = options.Model,
             Messages = messages,
             Tools = tools.Count > 0 ? tools.Select(ToDto).ToList() : null,
-            Options = new OptionsDto { Temperature = options.Temperature, NumCtx = options.ContextLength },
+            Options = new OptionsDto
+            {
+                Temperature = options.Temperature,
+                NumCtx = options.ContextLength,
+                NumPredict = Math.Min(options.ContextLength, MaxReplyTokens),
+            },
             KeepAlive = string.Create(CultureInfo.InvariantCulture, $"{options.KeepAliveMinutes}m"),
         };
     }

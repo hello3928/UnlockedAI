@@ -4,8 +4,25 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="using:UnlockedAI.Controls"
+    xmlns:views="using:UnlockedAI.Views"
     xmlns:vm="using:UnlockedAI.ViewModels"
     IsTabStop="False">
+
+    <UserControl.Resources>
+        <DataTemplate x:Key="MessageTemplate" x:DataType="vm:MessageViewModel">
+            <ui:MessageRow MaxWidth="{StaticResource ReadingWidth}" Message="{x:Bind}" />
+        </DataTemplate>
+        <DataTemplate x:Key="ToolCallTemplate" x:DataType="vm:ToolCallViewModel">
+            <ui:ToolCallCard
+                MaxWidth="{StaticResource ReadingWidth}"
+                Margin="{StaticResource InsetToolCall}"
+                Call="{x:Bind}" />
+        </DataTemplate>
+        <views:ChatItemTemplateSelector
+            x:Key="ChatItemSelector"
+            Message="{StaticResource MessageTemplate}"
+            ToolCall="{StaticResource ToolCallTemplate}" />
+    </UserControl.Resources>
 
     <UserControl.KeyboardAccelerators>
         <KeyboardAccelerator Key="Escape" Invoked="OnEscapeInvoked" />
@@ -25,11 +42,58 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Padding="{StaticResource InsetHeader}">
+        <Grid
+            Grid.Row="0"
+            Padding="{StaticResource InsetHeader}"
+            ColumnSpacing="{StaticResource Space3}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
             <ui:ModelPicker
-                HorizontalAlignment="Left"
+                Grid.Column="0"
                 Models="{x:Bind ViewModel.Models, Mode=OneWay}"
                 SelectedModel="{x:Bind ViewModel.SelectedModel, Mode=TwoWay}" />
+
+            <!-- Off by default. With tools on offer, small models use one for almost every message. -->
+            <ToggleSwitch
+                Grid.Column="1"
+                MinWidth="0"
+                VerticalAlignment="Center"
+                AutomationProperties.Name="Tools"
+                IsEnabled="{x:Bind ViewModel.CanUseTools, Mode=OneWay}"
+                IsOn="{x:Bind ViewModel.UseTools, Mode=TwoWay}"
+                OffContent="Tools off"
+                OnContent="Tools on"
+                ToolTipService.ToolTip="Lets the model search the web, read and write files, and run commands. Leave it off for ordinary chat: replies are faster and nothing is looked up online." />
+            <TextBlock
+                Grid.Column="2"
+                VerticalAlignment="Center"
+                Style="{StaticResource CaptionText}"
+                Text="{x:Bind ViewModel.ToolsNote, Mode=OneWay}"
+                TextTrimming="CharacterEllipsis"
+                TextWrapping="NoWrap" />
+
+            <!-- Always visible while on, so running without approval is never a hidden state. -->
+            <StackPanel
+                Grid.Column="3"
+                VerticalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="{StaticResource Space1}"
+                ToolTipService.ToolTip="Commands and file changes run without asking. Change this in Settings."
+                Visibility="{x:Bind ui:Visible.If(ViewModel.IsAutoApproveOn), Mode=OneWay}">
+                <ui:IconView
+                    VerticalAlignment="Center"
+                    Foreground="{StaticResource WarningBrush}"
+                    Icon="Warning" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Style="{StaticResource CaptionStrongText}"
+                    Text="Auto-approve is on" />
+            </StackPanel>
         </Grid>
 
         <ui:ErrorMessage
@@ -47,6 +111,7 @@
             AutomationProperties.Name="Messages"
             IsItemClickEnabled="False"
             ItemContainerStyle="{StaticResource PlainListItemStyle}"
+            ItemTemplateSelector="{StaticResource ChatItemSelector}"
             ItemsSource="{x:Bind ViewModel.Messages, Mode=OneWay}"
             SelectionMode="None">
             <ListView.ItemsPanel>
@@ -54,11 +119,6 @@
                     <ItemsStackPanel ItemsUpdatingScrollMode="KeepLastItemInView" />
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="vm:MessageViewModel">
-                    <ui:MessageRow MaxWidth="{StaticResource ReadingWidth}" Message="{x:Bind}" />
-                </DataTemplate>
-            </ListView.ItemTemplate>
         </ListView>
 
         <ui:EmptyState

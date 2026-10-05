@@ -2,6 +2,11 @@ using UnlockedAI.Core.Chat;
 using UnlockedAI.Core.Data;
 using UnlockedAI.Core.Files;
 using UnlockedAI.Core.Ollama;
+using UnlockedAI.Core.Search;
+using UnlockedAI.Core.Secrets;
+using UnlockedAI.Core.Tools;
+using UnlockedAI.Core.Tools.Builtin;
+using UnlockedAI.Core.Web;
 using UnlockedAI.ViewModels;
 
 namespace UnlockedAI.Platform;
@@ -14,6 +19,7 @@ internal sealed class AppHost : IDisposable
 {
     private readonly Database _database;
     private readonly OllamaClient _ollama;
+    private readonly WebReader _web;
 
     public AppHost()
     {
@@ -26,12 +32,24 @@ internal sealed class AppHost : IDisposable
         Settings = new SettingsService(new SettingsRepository(_database));
         _ollama = new OllamaClient(Settings);
 
-        var session = new ChatSession(_ollama, messages, attachments, Settings);
-        Chat = new ChatViewModel(conversations, messages, session, _ollama, Settings, new AttachmentService(), FilePicker);
+        // One web client for every tool that goes online.
+        _web = new WebReader();
+        var files = new AttachmentService();
+        var search = new SearchService(new DuckDuckGoSearch(_web), new OllamaWebSearch(_web, Secrets));
+        Tools = BuiltinTools.CreateRegistry(Settings, _web, search, files);
+
+        var approvals = new ApprovalGate();
+        var session = new ChatSession(_ollama, messages, attachments, Settings, Tools, approvals);
+
+        Chat = new ChatViewModel(conversations, messages, session, _ollama, Settings, files, FilePicker, Tools, approvals);
         Shell = new ShellViewModel(conversations, Chat);
     }
 
     public SettingsService Settings { get; }
+
+    public ISecretStore Secrets { get; } = new CredentialLockerSecretStore();
+
+    public ToolRegistry Tools { get; }
 
     public FilePickerService FilePicker { get; } = new();
 
@@ -51,6 +69,7 @@ internal sealed class AppHost : IDisposable
 
     public void Dispose()
     {
+        _web.Dispose();
         _ollama.Dispose();
         _database.Dispose();
     }

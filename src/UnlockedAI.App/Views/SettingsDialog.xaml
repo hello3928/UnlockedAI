@@ -4,13 +4,19 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="using:UnlockedAI.Controls"
+    xmlns:vm="using:UnlockedAI.ViewModels"
     Title="Settings"
     CloseButtonText="Cancel"
     IsPrimaryButtonEnabled="{x:Bind ViewModel.CanSave, Mode=OneWay}"
     PrimaryButtonClick="OnSaveClick"
     PrimaryButtonText="Save">
 
-    <StackPanel MinWidth="{StaticResource DialogContentWidth}" Spacing="{StaticResource Space4}">
+    <!-- A dialog doesn't scroll its content by itself, and this is taller than a small window. -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel
+        MinWidth="{StaticResource DialogContentWidth}"
+        Padding="{StaticResource InsetScrollContent}"
+        Spacing="{StaticResource Space4}">
 
         <ui:ErrorMessage
             DismissCommand="{x:Bind ViewModel.DismissErrorCommand}"
@@ -65,5 +71,54 @@
                 ItemsSource="{x:Bind ViewModel.KeepAliveOptions}"
                 SelectedItem="{x:Bind ViewModel.KeepAlive, Mode=TwoWay}" />
         </ui:FormRow>
+
+        <ui:SectionHeader Text="Tools" />
+
+        <ui:FormRow Description="Applies to running commands, writing files, and requests to this PC or your local network. Searching and reading the web never ask." Label="Before a tool changes this PC">
+            <ComboBox
+                HorizontalAlignment="Stretch"
+                ItemsSource="{x:Bind ViewModel.ApprovalOptions}"
+                SelectedItem="{x:Bind ViewModel.Approval, Mode=TwoWay}" />
+        </ui:FormRow>
+
+        <ui:Notice
+            Title="Nothing will check what the model runs"
+            Message="It will be able to run any command and change any file you can. Text on a web page or in a file it reads can talk it into doing so."
+            Severity="Warning"
+            Visibility="{x:Bind ui:Visible.If(ViewModel.IsAutoApprove), Mode=OneWay}" />
+
+        <ui:FormRow Description="Untick a tool and the model is never offered it." Label="Tools the model can use">
+            <ItemsControl IsTabStop="False" ItemsSource="{x:Bind ViewModel.Tools}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ToolToggleViewModel">
+                        <CheckBox AutomationProperties.Name="{x:Bind Title}" IsChecked="{x:Bind IsEnabled, Mode=TwoWay}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource BodyText}" Text="{x:Bind Title}" />
+                                <TextBlock Style="{StaticResource CaptionText}" Text="{x:Bind Summary}" />
+                            </StackPanel>
+                        </CheckBox>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ui:FormRow>
+
+        <ui:FormRow Description="A command still running after this long is stopped." Label="Command time limit">
+            <ComboBox
+                HorizontalAlignment="Stretch"
+                ItemsSource="{x:Bind ViewModel.TimeoutOptions}"
+                SelectedItem="{x:Bind ViewModel.CommandTimeout, Mode=TwoWay}" />
+        </ui:FormRow>
+
+        <ui:FormRow
+            Description="Where commands start and where relative file paths are looked up. Leave empty for your user folder."
+            Error="{x:Bind ViewModel.WorkingDirectoryError, Mode=OneWay}"
+            Label="Working folder">
+            <TextBox IsSpellCheckEnabled="False" Text="{x:Bind ViewModel.WorkingDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+        </ui:FormRow>
+
+        <ui:FormRow Description="Optional. With the key from a free ollama.com account, web search uses Ollama Web Search. Without one it uses DuckDuckGo. The key is kept in Windows Credential Manager." Label="Ollama API key">
+            <PasswordBox Password="{x:Bind ViewModel.OllamaApiKey, Mode=TwoWay}" />
+        </ui:FormRow>
     </StackPanel>
+    </ScrollViewer>
 </ui:AppDialog>

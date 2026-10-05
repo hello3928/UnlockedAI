@@ -34,8 +34,8 @@ public sealed class MessageRepository(Database database) : RepositoryBase(databa
                 using (var insert = Command(
                     connection,
                     """
-                    INSERT INTO messages (conversation_id, seq, role, content, tool_name, tool_calls_json, created_at)
-                    VALUES ($conversation, $seq, $role, $content, $tool, $calls, $now)
+                    INSERT INTO messages (conversation_id, seq, role, content, tool_name, tool_calls_json, tool_outcome, created_at)
+                    VALUES ($conversation, $seq, $role, $content, $tool, $calls, $outcome, $now)
                     RETURNING id
                     """,
                     ("$conversation", conversationId),
@@ -44,6 +44,7 @@ public sealed class MessageRepository(Database database) : RepositoryBase(databa
                     ("$content", message.Content),
                     ("$tool", message.ToolName),
                     ("$calls", SerializeToolCalls(message.ToolCalls)),
+                    ("$outcome", message.ToolOutcome?.ToString()),
                     ("$now", now)))
                 {
                     id = (long)insert.ExecuteScalar()!;
@@ -71,7 +72,10 @@ public sealed class MessageRepository(Database database) : RepositoryBase(databa
                     message.ToolName,
                     message.ToolCalls,
                     attachments,
-                    FromUnixMs(now));
+                    FromUnixMs(now))
+                {
+                    ToolOutcome = message.ToolOutcome,
+                };
             },
             cancellationToken);
 
@@ -85,7 +89,7 @@ public sealed class MessageRepository(Database database) : RepositoryBase(databa
                 using var command = Command(
                     connection,
                     """
-                    SELECT id, seq, role, content, tool_name, tool_calls_json, created_at
+                    SELECT id, seq, role, content, tool_name, tool_calls_json, created_at, tool_outcome
                     FROM messages
                     WHERE conversation_id = $conversation
                     ORDER BY seq
@@ -106,7 +110,12 @@ public sealed class MessageRepository(Database database) : RepositoryBase(databa
                         reader.IsDBNull(4) ? null : reader.GetString(4),
                         reader.IsDBNull(5) ? [] : DeserializeToolCalls(reader.GetString(5)),
                         attachments.TryGetValue(id, out var found) ? found : [],
-                        FromUnixMs(reader.GetInt64(6))));
+                        FromUnixMs(reader.GetInt64(6)))
+                    {
+                        ToolOutcome = !reader.IsDBNull(7) && Enum.TryParse<ToolOutcome>(reader.GetString(7), out var outcome)
+                            ? outcome
+                            : null,
+                    });
                 }
 
                 return messages;

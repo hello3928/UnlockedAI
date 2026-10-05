@@ -64,10 +64,36 @@ public class ContextBuilderTests
             Message(2, ChatRole.Tool, "result") with { ToolName = "web_search" },
         ];
 
-        var turns = ContextBuilder.Build("", history, []);
+        var turns = ContextBuilder.Build("", history, [], withTools: true);
 
-        Assert.Equal(call, Assert.Single(turns[0].ToolCalls!));
-        Assert.Equal("web_search", turns[1].ToolName);
+        Assert.Equal(ContextBuilder.ToolGuidance, turns[0].Content);
+        Assert.Equal(call, Assert.Single(turns[1].ToolCalls!));
+        Assert.Equal("web_search", turns[2].ToolName);
+    }
+
+    [Fact]
+    public void Tool_guidance_is_added_after_the_users_own_system_prompt()
+    {
+        var turns = ContextBuilder.Build("Be brief.", [Message(1, ChatRole.User, "hi")], [], withTools: true);
+
+        Assert.Equal($"Be brief.\n\n{ContextBuilder.ToolGuidance}", turns[0].Content);
+    }
+
+    [Fact]
+    public void Earlier_tool_use_is_left_out_for_a_model_without_tools()
+    {
+        ChatMessage[] history =
+        [
+            Message(1, ChatRole.User, "what time is it?"),
+            Message(2, ChatRole.Assistant, "") with { ToolCalls = [new ToolCall("system_info", "{}")] },
+            Message(3, ChatRole.Tool, "14:30") with { ToolName = "system_info" },
+            Message(4, ChatRole.Assistant, "It is 14:30."),
+        ];
+
+        var turns = ContextBuilder.Build("", history, [], withTools: false);
+
+        Assert.Equal(["what time is it?", "It is 14:30."], turns.Select(turn => turn.Content));
+        Assert.All(turns, turn => Assert.Null(turn.ToolCalls));
     }
 
     private static ChatMessage Message(long id, ChatRole role, string content, params Attachment[] attachments) =>

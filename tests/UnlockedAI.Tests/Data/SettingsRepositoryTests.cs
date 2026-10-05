@@ -22,6 +22,7 @@ public sealed class SettingsRepositoryTests : IDisposable
         Assert.Equal(AppSettings.DefaultOllamaUrl, loaded.OllamaUrl);
         Assert.Equal(AppSettings.DefaultModelName, loaded.DefaultModel);
         Assert.Equal(ApprovalMode.AskForChanges, loaded.ApprovalMode);
+        Assert.False(loaded.ToolsEnabled);
         Assert.Empty(loaded.DisabledTools);
     }
 
@@ -36,6 +37,7 @@ public sealed class SettingsRepositoryTests : IDisposable
             Temperature = 0.35,
             ContextLength = 16384,
             KeepAliveMinutes = 0,
+            ToolsEnabled = true,
             ApprovalMode = ApprovalMode.AllowEverything,
             CommandTimeoutSeconds = 120,
             WorkingDirectory = @"C:\Work",

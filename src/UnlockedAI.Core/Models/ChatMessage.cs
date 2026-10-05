@@ -12,15 +12,29 @@ public sealed record ChatMessage(
     string? ToolName,
     IReadOnlyList<ToolCall> ToolCalls,
     IReadOnlyList<Attachment> Attachments,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt)
+{
+    /// <summary>Set on <see cref="ChatRole.Tool"/> messages: how the tool call ended.</summary>
+    public ToolOutcome? ToolOutcome { get; init; }
+}
 
 /// <param name="ArgumentsJson">The arguments object exactly as the model produced it.</param>
 public sealed record ToolCall(string Name, string ArgumentsJson);
+
+public enum ToolOutcome
+{
+    Succeeded,
+    Failed,
+
+    /// <summary>The user chose not to let it run.</summary>
+    Denied,
+}
 
 /// <summary>A message about to be saved. The repository assigns its id and position.</summary>
 public sealed record NewMessage(ChatRole Role, string Content)
 {
     public string? ToolName { get; init; }
+    public ToolOutcome? ToolOutcome { get; init; }
     public IReadOnlyList<ToolCall> ToolCalls { get; init; } = [];
     public IReadOnlyList<NewAttachment> Attachments { get; init; } = [];
 }

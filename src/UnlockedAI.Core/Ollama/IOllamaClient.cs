@@ -28,7 +28,8 @@ public sealed record ModelText(string Text) : ModelEvent;
 
 public sealed record ModelToolCall(ToolCall Call) : ModelEvent;
 
-public sealed record ModelDone(int PromptTokens, int OutputTokens) : ModelEvent;
+/// <param name="HitLengthLimit">True when the reply was cut off at the longest length allowed, not finished by the model.</param>
+public sealed record ModelDone(int PromptTokens, int OutputTokens, bool HitLengthLimit = false) : ModelEvent;
 
 public interface IOllamaClient
 {

@@ -48,15 +48,17 @@ public sealed class MessageRepositoryTests : IDisposable
             Ct);
         await _messages.AppendAsync(
             conversation.Id,
-            new NewMessage(ChatRole.Tool, "Sunny, 24 degrees") { ToolName = "web_search" },
+            new NewMessage(ChatRole.Tool, "Sunny, 24 degrees") { ToolName = "web_search", ToolOutcome = ToolOutcome.Succeeded },
             Ct);
 
         var loaded = await _messages.ListAsync(conversation.Id, Ct);
 
         Assert.Equal(call, Assert.Single(loaded[0].ToolCalls));
         Assert.Null(loaded[0].ToolName);
+        Assert.Null(loaded[0].ToolOutcome);
         Assert.Equal(ChatRole.Tool, loaded[1].Role);
         Assert.Equal("web_search", loaded[1].ToolName);
+        Assert.Equal(ToolOutcome.Succeeded, loaded[1].ToolOutcome);
         Assert.Empty(loaded[1].ToolCalls);
     }
 

@@ -50,6 +50,11 @@ internal static class Migrations
             value  TEXT NOT NULL
         ) WITHOUT ROWID;
         """,
+
+        // 2: how a tool call ended, so a reopened chat can show it
+        """
+        ALTER TABLE messages ADD COLUMN tool_outcome TEXT;
+        """,
     ];
 
     public static int LatestVersion => Steps.Length;

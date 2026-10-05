@@ -25,6 +25,13 @@ public sealed record AppSettings
     /// <summary>Minutes Ollama keeps the model loaded after the last request. 0 unloads at once.</summary>
     public int KeepAliveMinutes { get; init; } = 5;
 
+    /// <summary>
+    /// Whether the model is offered tools at all. Off by default: small local models that are given
+    /// tools use one for nearly every message, which makes plain chat slow and sends ordinary
+    /// questions to a search engine. The user switches it on from the chat header when they want it.
+    /// </summary>
+    public bool ToolsEnabled { get; init; }
+
     public ApprovalMode ApprovalMode { get; init; } = ApprovalMode.AskForChanges;
     public int CommandTimeoutSeconds { get; init; } = 60;
 

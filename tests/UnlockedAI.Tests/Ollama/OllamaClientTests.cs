@@ -30,7 +30,7 @@ public sealed class OllamaClientTests : IDisposable
             {"message":{"role":"assistant","content":"Hel"},"done":false}
             {"message":{"role":"assistant","content":"lo"},"done":false}
             {"message":{"role":"assistant","content":"","tool_calls":[{"function":{"name":"web_search","arguments":{"query":"cats"}}}]},"done":false}
-            {"message":{"role":"assistant","content":""},"done":true,"prompt_eval_count":12,"eval_count":7}
+            {"message":{"role":"assistant","content":""},"done":true,"done_reason":"stop","prompt_eval_count":12,"eval_count":7}
             """);
         using var client = new OllamaClient(_settings, handler);
 
@@ -44,6 +44,17 @@ public sealed class OllamaClientTests : IDisposable
                 new ModelDone(12, 7),
             ],
             events);
+    }
+
+    [Fact]
+    public async Task Reply_that_ran_into_the_length_limit_is_flagged()
+    {
+        var handler = StubHttpHandler.Json("""{"message":{"role":"assistant","content":"x"},"done":true,"done_reason":"length"}""");
+        using var client = new OllamaClient(_settings, handler);
+
+        var events = await client.StreamChatAsync(Options, Hello, [], Ct).ToListAsync(Ct);
+
+        Assert.True(Assert.IsType<ModelDone>(events[^1]).HitLengthLimit);
     }
 
     [Fact]
@@ -61,6 +72,7 @@ public sealed class OllamaClientTests : IDisposable
         Assert.True(root.GetProperty("stream").GetBoolean());
         Assert.Equal("5m", root.GetProperty("keep_alive").GetString());
         Assert.Equal(8192, root.GetProperty("options").GetProperty("num_ctx").GetInt32());
+        Assert.Equal(OllamaClient.MaxReplyTokens, root.GetProperty("options").GetProperty("num_predict").GetInt32());
         Assert.Equal(0.5, root.GetProperty("options").GetProperty("temperature").GetDouble());
         Assert.Equal("hello", root.GetProperty("messages")[0].GetProperty("content").GetString());
         Assert.False(root.TryGetProperty("tools", out _));

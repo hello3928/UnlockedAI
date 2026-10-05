@@ -4,6 +4,7 @@ using UnlockedAI.Core.Data;
 using UnlockedAI.Core.Errors;
 using UnlockedAI.Core.Models;
 using UnlockedAI.Core.Ollama;
+using UnlockedAI.Core.Tools;
 using UnlockedAI.Tests.Support;
 
 namespace UnlockedAI.Tests.Chat;
@@ -22,7 +23,14 @@ public sealed class ChatSessionTests : IDisposable
         _conversations = new ConversationRepository(_database);
         _messages = new MessageRepository(_database);
         _settings = new SettingsService(new SettingsRepository(_database));
-        _session = new ChatSession(_ollama, _messages, new AttachmentRepository(_database), _settings);
+        _session = new ChatSession(
+            _ollama,
+            _messages,
+            new AttachmentRepository(_database),
+            _settings,
+            new ToolRegistry([]),
+            new FakeGate(),
+            FixedClock.Default);
     }
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
@@ -35,7 +43,7 @@ public sealed class ChatSessionTests : IDisposable
         var conversation = await StartChatAsync("hi");
         _ollama.Reply(new ModelText("Hel"), new ModelText("lo"), new ModelDone(3, 2));
 
-        var events = await _session.RunAsync(conversation, Ct).ToListAsync(Ct);
+        var events = await _session.RunAsync(conversation, useTools: false, Ct).ToListAsync(Ct);
 
         Assert.IsType<AssistantStarted>(events[0]);
         Assert.Equal(["Hel", "lo"], events.OfType<AssistantDelta>().Select(delta => delta.Text));
@@ -56,12 +64,13 @@ public sealed class ChatSessionTests : IDisposable
         var conversation = await StartChatAsync("hi", model: "chosen-model");
         _ollama.Reply(new ModelText("ok"));
 
-        await _session.RunAsync(conversation, Ct).ToListAsync(Ct);
+        await _session.RunAsync(conversation, useTools: false, Ct).ToListAsync(Ct);
 
         var (options, turns, tools) = Assert.Single(_ollama.Requests);
         Assert.Equal(new ModelOptions("chosen-model", 0.2, 4096, 1), options);
-        Assert.Equal([ChatRole.System, ChatRole.User], turns.Select(turn => turn.Role));
+        Assert.Equal([ChatRole.System, ChatRole.System, ChatRole.User], turns.Select(turn => turn.Role));
         Assert.Equal("Be brief.", turns[0].Content);
+        Assert.Equal("It is Monday, 9 March 2026, 14:30 (UTC+10:00).", turns[1].Content);
         Assert.Empty(tools);
     }
 
@@ -74,7 +83,7 @@ public sealed class ChatSessionTests : IDisposable
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
         {
-            await foreach (var chatEvent in _session.RunAsync(conversation, stop.Token))
+            await foreach (var chatEvent in _session.RunAsync(conversation, useTools: false, stop.Token))
             {
                 if (chatEvent is AssistantDelta)
                 {
@@ -101,7 +110,7 @@ public sealed class ChatSessionTests : IDisposable
         _ollama.Reply(_ => Fail());
 
         var exception = await Assert.ThrowsAsync<AppException>(
-            async () => await _session.RunAsync(conversation, Ct).ToListAsync(Ct));
+            async () => await _session.RunAsync(conversation, useTools: false, Ct).ToListAsync(Ct));
 
         Assert.Equal(AppErrorKind.OllamaUnreachable, exception.Error.Kind);
         Assert.Equal(ChatRole.User, Assert.Single(await _messages.ListAsync(conversation.Id, Ct)).Role);
@@ -123,7 +132,7 @@ public sealed class ChatSessionTests : IDisposable
         _ollama.Reply(new ModelDone(1, 0));
 
         var exception = await Assert.ThrowsAsync<AppException>(
-            async () => await _session.RunAsync(conversation, Ct).ToListAsync(Ct));
+            async () => await _session.RunAsync(conversation, useTools: false, Ct).ToListAsync(Ct));
 
         Assert.True(exception.Error.IsRetryable);
         Assert.Single(await _messages.ListAsync(conversation.Id, Ct));

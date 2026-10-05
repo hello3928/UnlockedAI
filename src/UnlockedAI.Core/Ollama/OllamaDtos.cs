@@ -50,12 +50,14 @@ internal sealed class OptionsDto
 {
     public double Temperature { get; init; }
     public int NumCtx { get; init; }
+    public int NumPredict { get; init; }
 }
 
 internal sealed class ChatChunkDto
 {
     public MessageDto? Message { get; init; }
     public bool Done { get; init; }
+    public string? DoneReason { get; init; }
     public string? Error { get; init; }
     public int? PromptEvalCount { get; init; }
     public int? EvalCount { get; init; }

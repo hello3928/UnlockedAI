@@ -57,7 +57,8 @@ public sealed partial class MainWindow : Window
     private async void OnSettingsRequested(object? sender, EventArgs e)
     {
         // Built when asked for and dropped when closed; nothing about settings stays in memory.
-        var dialog = new SettingsDialog(new SettingsViewModel(_host.Settings, _host.Chat.Models));
+        var dialog = new SettingsDialog(
+            new SettingsViewModel(_host.Settings, _host.Chat.Models, _host.Tools, _host.Secrets));
         if (await dialog.ShowAsync(Content.XamlRoot) == ContentDialogResult.Primary)
         {
             await _host.Chat.ApplySettingsAsync();
