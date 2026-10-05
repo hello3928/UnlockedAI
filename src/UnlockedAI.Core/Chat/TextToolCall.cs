@@ -4,15 +4,17 @@ using UnlockedAI.Core.Models;
 namespace UnlockedAI.Core.Chat;
 
 /// <summary>
-/// Small local models sometimes write a tool call out as text, for example
-/// <c>Answer: {"name": "run_command", "parameters": {"command": "dir"}}</c>, instead of making it
-/// properly. This recognises a reply that is nothing but such a call, so it can be run instead of
-/// being shown to the user as a line of JSON.
+/// Small local models sometimes write a tool call out as text instead of making it properly, for
+/// example <c>Answer: {"name": "run_command", "parameters": {"command": "dir"}}</c>, or the same
+/// JSON after the sentence "Here's a JSON for a function call with its proper arguments that best
+/// answers the given prompt:". This recognises a reply that ends with such a call, so it can be run
+/// instead of being shown to the user as a line of JSON.
 /// </summary>
 public static class TextToolCall
 {
-    // A word or two such as "Answer:" may come before the JSON. Anything longer is a real reply.
-    private const int MaxPrefixLength = 24;
+    // Room for one introductory sentence before the JSON. A reply with more than that in front
+    // is the model explaining something, not calling a tool.
+    private const int MaxPrefixLength = 200;
 
     public static bool TryParse(string reply, IEnumerable<string> offeredTools, out ToolCall call)
     {

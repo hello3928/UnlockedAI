@@ -49,6 +49,10 @@ public class SituationAndTextToolCallTests
     [InlineData("""{"name": "run_command", "parameters": {"command": "dir"}}""")]
     [InlineData("""Answer: {"name": "run_command", "arguments": {"command": "dir"}}""")]
     [InlineData("""  {"name":"run_command","parameters":{"command":"dir"}}  """)]
+    [InlineData("""
+        Here's a JSON for a function call with its proper arguments that best answers the given prompt:
+        {"name": "run_command", "parameters": {"command": "dir"}}
+        """)]
     public void Tool_call_written_as_text_is_recognised(string reply)
     {
         Assert.True(TextToolCall.TryParse(reply, Offered, out var call));
@@ -62,7 +66,12 @@ public class SituationAndTextToolCallTests
     [InlineData("""{"name": "run_command"}""")]
     [InlineData("""{"name": "run_command", "parameters": "dir"}""")]
     [InlineData("""{"name": "run_command", "parameters": {"command": "dir"}""")]
-    [InlineData("""Here is how you would call it, as an example for you: {"name": "run_command", "parameters": {"command": "dir"}}""")]
+    [InlineData("""
+        Tools are called with a small piece of JSON. The name field says which tool you want, and the parameters
+        field holds its arguments. Each tool documents the arguments it accepts, and anything missing is reported
+        back to you as an error. For instance, listing a folder on Windows would look like this:
+        {"name": "run_command", "parameters": {"command": "dir"}}
+        """)]
     [InlineData("""{"name": "run_command", "parameters": {"command": "dir"}} and then tell me""")]
     public void Ordinary_replies_and_malformed_calls_are_left_alone(string reply)
     {
