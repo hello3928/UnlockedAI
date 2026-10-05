@@ -6,7 +6,7 @@ using UnlockedAI.Core.Web;
 
 namespace UnlockedAI.Core.Search;
 
-/// <summary>Searches through Ollama's hosted web search API. Needs the API key of a free ollama.com account.</summary>
+/// <summary>Searches through Ollama's hosted web search API. Needs an ollama.com API key.</summary>
 public sealed class OllamaWebSearch(WebReader web, ISecretStore secrets) : ISearchProvider
 {
     private static readonly Uri Endpoint = new("https://ollama.com/api/web_search");

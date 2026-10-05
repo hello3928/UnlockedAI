@@ -388,9 +388,41 @@ public sealed partial class ChatViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// Starts loading the model in the background as soon as it is chosen. Loading takes several
+    /// seconds, and without this the user sits through it after sending their first message.
+    /// </summary>
+    private void Preload(ModelInfo model)
+    {
+        // Size 0 marks a model that is no longer installed; there is nothing to load.
+        if (model.SizeBytes == 0 || IsGenerating)
+        {
+            return;
+        }
+
+        var current = _settings.Current;
+        var options = new ModelOptions(model.Name, current.Temperature, current.ContextLength, current.KeepAliveMinutes);
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _ollama.PreloadAsync(options).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                // A failed warm-up costs nothing: the first reply loads the model itself and reports any real problem.
+            }
+        });
+    }
+
     partial void OnSelectedModelChanged(ModelInfo? value)
     {
         ShowToolStatus();
+
+        if (value is not null)
+        {
+            Preload(value);
+        }
 
         if (_syncingModel || value is null || _conversation is null || _conversation.Model == value.Name)
         {

@@ -83,6 +83,20 @@ public sealed class OllamaClient : IOllamaClient, IDisposable
         }
     }
 
+    public async Task PreloadAsync(ModelOptions options, CancellationToken cancellationToken = default)
+    {
+        // A chat request with no messages only loads the model. It carries the same context length
+        // as real requests, because Ollama reloads a model when that changes.
+        var load = BuildRequest(options, turns: [], tools: [], stream: false);
+        using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint("api/chat"))
+        {
+            Content = JsonContent.Create(load, OllamaJsonContext.Default.ChatRequestDto),
+        };
+
+        using var response = await SendAsync(request, cancellationToken).ConfigureAwait(false);
+        await EnsureSuccessAsync(response, options.Model, cancellationToken).ConfigureAwait(false);
+    }
+
     public async IAsyncEnumerable<ModelEvent> StreamChatAsync(
         ModelOptions options,
         IReadOnlyList<ChatTurn> turns,
@@ -147,7 +161,8 @@ public sealed class OllamaClient : IOllamaClient, IDisposable
     private static ChatRequestDto BuildRequest(
         ModelOptions options,
         IReadOnlyList<ChatTurn> turns,
-        IReadOnlyList<ToolDefinition> tools)
+        IReadOnlyList<ToolDefinition> tools,
+        bool stream = true)
     {
         var messages = new List<MessageDto>(turns.Count);
         foreach (var turn in turns)
@@ -165,6 +180,7 @@ public sealed class OllamaClient : IOllamaClient, IDisposable
         {
             Model = options.Model,
             Messages = messages,
+            Stream = stream,
             Tools = tools.Count > 0 ? tools.Select(ToDto).ToList() : null,
             Options = new OptionsDto
             {

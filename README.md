@@ -45,7 +45,7 @@ Tools are switched on and off with the **Tools** switch at the top of a chat. It
 
 Looking things up (searching, reading a public web page, listing a folder, reading a file) runs without asking. Running a command, writing a file, and any request to this PC or the local network wait for you, with the exact command or path shown first. Settings has an option to run everything without asking; while it is on, the chat header says so.
 
-Web search uses DuckDuckGo with no setup. Paste the API key of a free ollama.com account into Settings and it uses Ollama Web Search instead. The key is kept in Windows Credential Manager.
+Web search uses DuckDuckGo with no setup and no account. If you have an ollama.com API key, paste it into Settings and search uses Ollama Web Search instead. The key is kept in Windows Credential Manager.
 
 To add a tool, write a class deriving from `ToolBase` and add it to `BuiltinTools.CreateRegistry`. Give every tool at least one parameter: a tool with an empty parameter list made the default model's calls to the other tools unreliable.
 

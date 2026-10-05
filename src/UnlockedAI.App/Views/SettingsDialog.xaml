@@ -116,7 +116,7 @@
             <TextBox IsSpellCheckEnabled="False" Text="{x:Bind ViewModel.WorkingDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
         </ui:FormRow>
 
-        <ui:FormRow Description="Optional. With the key from a free ollama.com account, web search uses Ollama Web Search. Without one it uses DuckDuckGo. The key is kept in Windows Credential Manager." Label="Ollama API key">
+        <ui:FormRow Description="Optional. Web search uses DuckDuckGo, which needs no key. With an ollama.com API key it uses Ollama Web Search instead. The key is kept in Windows Credential Manager." Label="Ollama API key">
             <PasswordBox Password="{x:Bind ViewModel.OllamaApiKey, Mode=TwoWay}" />
         </ui:FormRow>
     </StackPanel>

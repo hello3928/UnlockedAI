@@ -36,6 +36,12 @@ public interface IOllamaClient
     Task<IReadOnlyList<ModelInfo>> ListModelsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Loads a model into memory ahead of time, so the first reply doesn't start with a wait of
+    /// several seconds while Ollama loads it.
+    /// </summary>
+    Task PreloadAsync(ModelOptions options, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Streams one reply. Text arrives as <see cref="ModelText"/> pieces; the stream ends with <see cref="ModelDone"/>.
     /// </summary>
     IAsyncEnumerable<ModelEvent> StreamChatAsync(

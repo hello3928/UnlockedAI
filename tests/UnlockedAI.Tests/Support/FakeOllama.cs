@@ -29,6 +29,8 @@ internal sealed class FakeOllama : IOllamaClient
     public Task<IReadOnlyList<ModelInfo>> ListModelsAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult(Models);
 
+    public Task PreloadAsync(ModelOptions options, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
     public IAsyncEnumerable<ModelEvent> StreamChatAsync(
         ModelOptions options,
         IReadOnlyList<ChatTurn> turns,
