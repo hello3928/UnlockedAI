@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="UnlockedAI.Controls.CodeBlock"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="using:UnlockedAI.Controls"
+    IsTabStop="False">
+
+    <Border
+        Background="{StaticResource InsetBrush}"
+        BorderBrush="{StaticResource ControlStrokeBrush}"
+        BorderThickness="{StaticResource StrokeThin}"
+        CornerRadius="{StaticResource RadiusControl}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Padding="{StaticResource InsetCode}">
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Style="{StaticResource CaptionText}"
+                    Text="{x:Bind LanguageName, Mode=OneWay}" />
+                <ui:CopyButton
+                    HorizontalAlignment="Right"
+                    Label="Copy code"
+                    Text="{x:Bind Code, Mode=OneWay}" />
+            </Grid>
+
+            <!-- Code is never wrapped; long lines scroll sideways so indentation stays readable. -->
+            <ScrollViewer
+                Grid.Row="1"
+                Padding="{StaticResource InsetCodeBody}"
+                HorizontalScrollBarVisibility="Auto"
+                HorizontalScrollMode="Auto"
+                VerticalScrollBarVisibility="Disabled"
+                VerticalScrollMode="Disabled">
+                <TextBlock
+                    IsTextSelectionEnabled="True"
+                    Style="{StaticResource MonoText}"
+                    Text="{x:Bind Code, Mode=OneWay}"
+                    TextWrapping="NoWrap" />
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</UserControl>

@@ -11,4 +11,10 @@ internal static class Tokens
     public static Brush Brush(string key) => (Brush)Application.Current.Resources[key];
 
     public static Style Style(string key) => (Style)Application.Current.Resources[key];
+
+    public static Thickness Inset(string key) => (Thickness)Application.Current.Resources[key];
+
+    public static CornerRadius Radius(string key) => (CornerRadius)Application.Current.Resources[key];
+
+    public static FontFamily Font(string key) => (FontFamily)Application.Current.Resources[key];
 }

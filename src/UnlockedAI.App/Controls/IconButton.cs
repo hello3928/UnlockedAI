@@ -8,7 +8,7 @@ namespace UnlockedAI.Controls;
 /// A square, icon-only button. <see cref="Label"/> is required: it becomes the tooltip and the
 /// name screen readers announce, since the button shows no text of its own.
 /// </summary>
-public sealed partial class IconButton : AppButton
+public partial class IconButton : AppButton
 {
     public static readonly DependencyProperty LabelProperty =
         Dp.Register<IconButton, string>(nameof(Label), "", (button, label) => button.ApplyLabel(label));

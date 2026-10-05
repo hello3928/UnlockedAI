@@ -41,16 +41,26 @@ internal sealed class UiBatcher<T>
 
     private void Drain()
     {
-        var any = false;
-        while (_pending.TryDequeue(out var item))
+        try
         {
-            _apply(item);
-            any = true;
-        }
+            var any = false;
+            while (_pending.TryDequeue(out var item))
+            {
+                _apply(item);
+                any = true;
+            }
 
-        if (any)
+            if (any)
+            {
+                _afterBatch();
+            }
+        }
+        catch (Exception exception)
         {
-            _afterBatch();
+            // An exception escaping a timer callback ends the process without passing through
+            // Application.UnhandledException, so this is the only chance to record it.
+            CrashLog.Write(exception);
+            throw;
         }
     }
 }

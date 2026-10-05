@@ -53,6 +53,8 @@
     <Style x:Key="MonoText" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource FontFamilyMono}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMono}" />
+        <!-- Cascadia Mono's regular weight reads heavier than Segoe UI at the same size. -->
+        <Setter Property="FontWeight" Value="SemiLight" />
         <Setter Property="LineHeight" Value="{StaticResource LineHeightBody}" />
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
     </Style>

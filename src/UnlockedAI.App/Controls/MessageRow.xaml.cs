@@ -1,6 +1,5 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using UnlockedAI.Platform;
 using UnlockedAI.ViewModels;
 
 namespace UnlockedAI.Controls;
@@ -25,12 +24,4 @@ public sealed partial class MessageRow : UserControl
 
     private void ApplyRole() =>
         VisualStateManager.GoToState(this, Message is { IsUser: true } ? "User" : "Assistant", useTransitions: false);
-
-    private void OnCopyClick(object sender, RoutedEventArgs e)
-    {
-        if (Message is { Text.Length: > 0 } message)
-        {
-            ClipboardService.CopyText(message.Text);
-        }
-    }
 }

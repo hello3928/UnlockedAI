@@ -29,20 +29,18 @@
                     VerticalAlignment="Center"
                     Style="{StaticResource CaptionStrongText}"
                     Text="{x:Bind Message.RoleLabel, Mode=OneWay}" />
-                <ui:IconButton
+                <ui:CopyButton
                     HorizontalAlignment="Right"
-                    Click="OnCopyClick"
-                    Icon="Copy"
-                    IsCompact="True"
                     Label="Copy message"
+                    Text="{x:Bind Message.Text, Mode=OneWay}"
                     Visibility="{x:Bind ui:Visible.IfNot(Message.IsStreaming), Mode=OneWay}" />
             </Grid>
 
-            <TextBlock
-                IsTextSelectionEnabled="True"
-                Style="{StaticResource BodyText}"
-                Text="{x:Bind Message.Text, Mode=OneWay}"
-                Visibility="{x:Bind ui:Visible.IfText(Message.Text), Mode=OneWay}" />
+            <!-- What the user typed is shown as typed; the model's reply is rendered as markdown. -->
+            <ui:MarkdownView
+                Margin="{StaticResource InsetMessageBody}"
+                IsPlainText="{x:Bind Message.IsUser, Mode=OneWay}"
+                Text="{x:Bind Message.Text, Mode=OneWay}" />
 
             <ui:BusyIndicator
                 HorizontalAlignment="Left"
