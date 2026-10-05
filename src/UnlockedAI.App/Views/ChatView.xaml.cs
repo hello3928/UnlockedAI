@@ -27,12 +27,34 @@ public sealed partial class ChatView : UserControl
         get => _viewModel;
         set
         {
+            if (_viewModel is not null)
+            {
+                _viewModel.Opened -= OnChatOpened;
+                _viewModel.Started -= OnChatStarted;
+            }
+
             _viewModel = value;
+            if (_viewModel is not null)
+            {
+                _viewModel.Opened += OnChatOpened;
+                _viewModel.Started += OnChatStarted;
+            }
+
             Bindings.Update();
         }
     }
 
     public void FocusComposer() => MessageComposer.FocusInput();
+
+    // Focus stays where it is, so the sidebar can be walked with the arrow keys.
+    private void OnChatOpened(object? sender, EventArgs e) => ScrollToLatest();
+
+    // A new chat is for typing into, so the caret goes straight to the message box.
+    private void OnChatStarted(object? sender, EventArgs e)
+    {
+        ScrollToLatest();
+        FocusComposer();
+    }
 
     /// <summary>Jumps to the newest message and keeps following new text as it arrives.</summary>
     public void ScrollToLatest()

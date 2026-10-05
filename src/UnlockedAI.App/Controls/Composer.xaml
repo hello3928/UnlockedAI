@@ -58,22 +58,12 @@
                 </TextBox.Resources>
             </TextBox>
 
+            <!-- One button that is Send or Stop. Two buttons swapping places would drop keyboard focus. -->
             <ui:IconButton
+                x:Name="ActionButton"
                 Grid.Column="1"
                 VerticalAlignment="Bottom"
-                Command="{x:Bind SendCommand, Mode=OneWay}"
-                Icon="Send"
-                Label="Send (Enter)"
-                Variant="Primary"
-                Visibility="{x:Bind ui:Visible.IfNot(IsBusy), Mode=OneWay}" />
-            <ui:IconButton
-                Grid.Column="1"
-                VerticalAlignment="Bottom"
-                Command="{x:Bind StopCommand, Mode=OneWay}"
-                Icon="Stop"
-                Label="Stop (Esc)"
-                Variant="Secondary"
-                Visibility="{x:Bind ui:Visible.If(IsBusy), Mode=OneWay}" />
+                Click="OnActionClick" />
         </Grid>
     </Border>
 </UserControl>

@@ -11,14 +11,26 @@
     </Window.SystemBackdrop>
 
     <Grid>
+        <Grid.KeyboardAccelerators>
+            <KeyboardAccelerator
+                Key="N"
+                Invoked="OnNewChatInvoked"
+                Modifiers="Control" />
+        </Grid.KeyboardAccelerators>
+
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="{StaticResource SidebarColumn}" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
         <Grid
             x:Name="AppTitleBar"
             Grid.Row="0"
+            Grid.ColumnSpan="2"
             Height="{StaticResource TitleBarHeight}"
             Padding="{StaticResource InsetTitleBar}">
             <TextBlock
@@ -27,11 +39,20 @@
                 Text="UnlockedAI" />
         </Grid>
 
+        <!-- The sidebar sits directly on the window backdrop; the chat sits on a raised layer. -->
+        <views:SidebarView
+            x:Name="Sidebar"
+            Grid.Row="1"
+            Grid.Column="0"
+            SettingsRequested="OnSettingsRequested" />
+
         <Border
             Grid.Row="1"
+            Grid.Column="1"
             Background="{StaticResource LayerBrush}"
             BorderBrush="{StaticResource DividerBrush}"
-            BorderThickness="{StaticResource StrokeTop}">
+            BorderThickness="{StaticResource StrokeTopLeft}"
+            CornerRadius="{StaticResource RadiusContent}">
             <views:ChatView x:Name="Chat" />
         </Border>
     </Grid>

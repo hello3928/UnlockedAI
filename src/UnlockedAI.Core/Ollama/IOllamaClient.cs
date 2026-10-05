@@ -3,7 +3,11 @@ using UnlockedAI.Core.Models;
 namespace UnlockedAI.Core.Ollama;
 
 /// <summary>An installed model as the model picker shows it.</summary>
-public sealed record ModelInfo(string Name, long SizeBytes, bool SupportsTools, string? ParameterSize);
+public sealed record ModelInfo(string Name, long SizeBytes, bool SupportsTools, string? ParameterSize)
+{
+    /// <summary>A model is known by its name; lists and screen readers show this.</summary>
+    public override string ToString() => Name;
+}
 
 /// <summary>One message in a request to the model.</summary>
 public sealed record ChatTurn(

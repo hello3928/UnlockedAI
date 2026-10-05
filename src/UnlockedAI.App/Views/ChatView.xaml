@@ -14,21 +14,29 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
+        <Grid Grid.Row="0" Padding="{StaticResource InsetHeader}">
+            <ui:ModelPicker
+                HorizontalAlignment="Left"
+                Models="{x:Bind ViewModel.Models, Mode=OneWay}"
+                SelectedModel="{x:Bind ViewModel.SelectedModel, Mode=TwoWay}" />
+        </Grid>
+
         <ui:ErrorMessage
-            Grid.Row="0"
+            Grid.Row="1"
             MaxWidth="{StaticResource ReadingWidth}"
-            Margin="{StaticResource InsetPageTop}"
+            Margin="{StaticResource InsetPage}"
             DismissCommand="{x:Bind ViewModel.DismissErrorCommand, Mode=OneWay}"
             Error="{x:Bind ViewModel.Error, Mode=OneWay}"
             RetryCommand="{x:Bind ViewModel.RetryCommand, Mode=OneWay}" />
 
         <ListView
             x:Name="MessageList"
-            Grid.Row="1"
+            Grid.Row="2"
             Padding="{StaticResource InsetList}"
             AutomationProperties.Name="Messages"
             IsItemClickEnabled="False"
@@ -49,18 +57,18 @@
 
         <ui:EmptyState
             Title="What do you want to ask?"
-            Grid.Row="1"
+            Grid.Row="2"
             Icon="Chat"
             Message="Enter sends. Shift+Enter adds a line."
             Visibility="{x:Bind ui:Visible.If(ViewModel.IsEmpty), Mode=OneWay}" />
 
         <ui:Composer
             x:Name="MessageComposer"
-            Grid.Row="2"
+            Grid.Row="3"
             MaxWidth="{StaticResource ReadingWidth}"
             Margin="{StaticResource InsetPageBottom}"
             IsBusy="{x:Bind ViewModel.IsGenerating, Mode=OneWay}"
-            PlaceholderText="Message"
+            PlaceholderText="{x:Bind ViewModel.ComposerPlaceholder, Mode=OneWay}"
             SendCommand="{x:Bind ViewModel.SendCommand, Mode=OneWay}"
             StopCommand="{x:Bind ViewModel.StopCommand, Mode=OneWay}"
             Text="{x:Bind ViewModel.Draft, Mode=TwoWay}" />

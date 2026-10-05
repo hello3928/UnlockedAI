@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="UnlockedAI.Controls.ModelPicker"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ollama="using:UnlockedAI.Core.Ollama"
+    xmlns:ui="using:UnlockedAI.Controls"
+    IsTabStop="False">
+
+    <ComboBox
+        MinWidth="{StaticResource ModelPickerWidth}"
+        AutomationProperties.Name="Model"
+        ItemsSource="{x:Bind Models, Mode=OneWay}"
+        PlaceholderText="No models installed"
+        SelectedItem="{x:Bind SelectedModel, Mode=TwoWay}"
+        ToolTipService.ToolTip="Model used for this chat">
+        <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="ollama:ModelInfo">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
+                    <TextBlock
+                        Style="{StaticResource BodyText}"
+                        Text="{x:Bind ui:ModelPicker.DisplayName(Name)}"
+                        TextWrapping="NoWrap" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Style="{StaticResource CaptionText}"
+                        Text="{x:Bind ui:ModelPicker.Detail(ParameterSize, SupportsTools)}"
+                        TextWrapping="NoWrap" />
+                </StackPanel>
+            </DataTemplate>
+        </ComboBox.ItemTemplate>
+    </ComboBox>
+</UserControl>

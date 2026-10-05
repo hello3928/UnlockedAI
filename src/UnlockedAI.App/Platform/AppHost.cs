@@ -26,14 +26,25 @@ internal sealed class AppHost : IDisposable
         _ollama = new OllamaClient(Settings);
 
         var session = new ChatSession(_ollama, messages, attachments, Settings);
-        Chat = new ChatViewModel(conversations, messages, session, Settings);
+        Chat = new ChatViewModel(conversations, messages, session, _ollama, Settings);
+        Shell = new ShellViewModel(conversations, Chat);
     }
 
     public SettingsService Settings { get; }
 
     public ChatViewModel Chat { get; }
 
-    public Task InitializeAsync() => Settings.LoadAsync();
+    public ShellViewModel Shell { get; }
+
+    /// <summary>Loads what the first screen needs. Settings come first because everything else reads them.</summary>
+    public async Task InitializeAsync()
+    {
+        await Settings.LoadAsync();
+        await Shell.InitializeAsync();
+
+        // Not awaited: the window should open even while Ollama is slow or not running.
+        _ = Chat.InitializeAsync();
+    }
 
     public void Dispose()
     {

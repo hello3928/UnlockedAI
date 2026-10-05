@@ -1,16 +1,20 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Input;
 using UnlockedAI.Platform;
 
 namespace UnlockedAI;
 
 public sealed partial class MainWindow : Window
 {
-    private const int MinimumWidth = 560;
-    private const int MinimumHeight = 420;
+    private const int MinimumWidth = 760;
+    private const int MinimumHeight = 480;
+
+    private readonly AppHost _host;
 
     internal MainWindow(AppHost host)
     {
+        _host = host;
         InitializeComponent();
 
         ExtendsContentIntoTitleBar = true;
@@ -25,6 +29,28 @@ public sealed partial class MainWindow : Window
             presenter.PreferredMinimumHeight = MinimumHeight;
         }
 
+        Sidebar.ViewModel = host.Shell;
         Chat.ViewModel = host.Chat;
+
+        Activated += OnActivated;
+    }
+
+    private async void OnActivated(object sender, WindowActivatedEventArgs args)
+    {
+        // Coming back to the app is when a model pulled in a terminal should show up.
+        if (args.WindowActivationState != WindowActivationState.Deactivated)
+        {
+            await _host.Chat.RefreshModelsAsync(quiet: true);
+        }
+    }
+
+    private void OnNewChatInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        _host.Shell.NewChatCommand.Execute(null);
+        args.Handled = true;
+    }
+
+    private void OnSettingsRequested(object? sender, EventArgs e)
+    {
     }
 }

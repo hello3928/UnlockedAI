@@ -32,4 +32,7 @@ public sealed partial class MessageViewModel : ObservableObject
     /// <summary>True while the model is still writing this message.</summary>
     [ObservableProperty]
     public partial bool IsStreaming { get; set; }
+
+    /// <summary>List rows are announced by screen readers using this text.</summary>
+    public override string ToString() => $"{RoleLabel}: {Text}";
 }

@@ -21,17 +21,18 @@ public sealed partial class Composer : UserControl
         Dp.Register<Composer, string>(nameof(PlaceholderText), "");
 
     public static readonly DependencyProperty SendCommandProperty =
-        Dp.Register<Composer, ICommand?>(nameof(SendCommand), null);
+        Dp.Register<Composer, ICommand?>(nameof(SendCommand), null, (composer, _) => composer.UpdateAction());
 
     public static readonly DependencyProperty StopCommandProperty =
-        Dp.Register<Composer, ICommand?>(nameof(StopCommand), null);
+        Dp.Register<Composer, ICommand?>(nameof(StopCommand), null, (composer, _) => composer.UpdateAction());
 
     public static readonly DependencyProperty IsBusyProperty =
-        Dp.Register<Composer, bool>(nameof(IsBusy), false);
+        Dp.Register<Composer, bool>(nameof(IsBusy), false, (composer, _) => composer.UpdateAction());
 
     public Composer()
     {
         InitializeComponent();
+        UpdateAction();
     }
 
     public string Text
@@ -84,6 +85,18 @@ public sealed partial class Composer : UserControl
             command.Execute(null);
         }
     }
+
+    private void UpdateAction()
+    {
+        var busy = IsBusy;
+        ActionButton.Icon = busy ? AppIcon.Stop : AppIcon.Send;
+        ActionButton.Label = busy ? "Stop (Esc)" : "Send (Enter)";
+        ActionButton.Variant = busy ? ButtonVariant.Secondary : ButtonVariant.Primary;
+        ActionButton.Command = busy ? StopCommand : SendCommand;
+    }
+
+    // After a click the next thing the user does is type, so the caret goes back to the box.
+    private void OnActionClick(object sender, RoutedEventArgs e) => FocusInput();
 
     private void OnInputGotFocus(object sender, RoutedEventArgs e) =>
         VisualStateManager.GoToState(this, "Focused", useTransitions: false);
