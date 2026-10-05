@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="UnlockedAI.Tests" />
   </ItemGroup>
 

@@ -12,8 +12,6 @@
     <PackageVersion Include="PdfPig" Version="0.1.16" />
     <PackageVersion Include="AngleSharp" Version="1.8.3" />
     <!-- Tests -->
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
     <PackageVersion Include="xunit.v3" Version="4.0.1" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0" />
   </ItemGroup>
 </Project>

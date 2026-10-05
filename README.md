@@ -19,7 +19,7 @@ dotnet run --project src/UnlockedAI.App
 ```
 
 ```bash
-dotnet test UnlockedAI.slnx -p:Platform=x64
+dotnet test --project tests/UnlockedAI.Tests
 ```
 
 ## Layout
