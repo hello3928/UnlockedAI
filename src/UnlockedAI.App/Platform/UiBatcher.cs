@@ -5,11 +5,13 @@ namespace UnlockedAI.Platform;
 
 /// <summary>
 /// Collects items posted from any thread and applies them on the UI thread in batches, in order.
-/// Streaming a reply posts hundreds of items a second; the UI only needs to catch up about 20 times a second.
+/// The UI catches up once per screen frame: often enough that each word appears as it arrives,
+/// without doing more work than the screen can show.
 /// </summary>
 internal sealed class UiBatcher<T>
 {
-    private static readonly TimeSpan Interval = TimeSpan.FromMilliseconds(50);
+    // One frame at 60 Hz. At 50 ms, words visibly arrived in clumps.
+    private static readonly TimeSpan Interval = TimeSpan.FromMilliseconds(16);
 
     private readonly ConcurrentQueue<T> _pending = new();
     private readonly DispatcherQueueTimer _timer;
