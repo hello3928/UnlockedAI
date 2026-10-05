@@ -16,3 +16,6 @@ artifacts/
 
 # Test results
 TestResults/
+
+# Connection details for one rented server; specific to this machine.
+connect-server.cmd

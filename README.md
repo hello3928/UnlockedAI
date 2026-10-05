@@ -49,6 +49,18 @@ Web search uses DuckDuckGo with no setup and no account. If you have an ollama.c
 
 To add a tool, write a class deriving from `ToolBase` and add it to `BuiltinTools.CreateRegistry`. Give every tool at least one parameter: a tool with an empty parameter list made the default model's calls to the other tools unreliable.
 
+## Using a model on another machine
+
+The **Ollama address** in Settings can point at any machine running Ollama, such as a rented GPU server that can hold a larger model than your own card.
+
+Ollama has no password, so don't open its port to the internet. Leave it listening on the server's own `127.0.0.1` and reach it through an SSH tunnel:
+
+```bash
+ssh -p <port> -L 11435:127.0.0.1:11434 root@<server>
+```
+
+While that is connected, set the Ollama address to `http://localhost:11435`. Set it back to `http://localhost:11434` to use the models on your own PC. Tools still run on your PC either way; the model only decides what to call.
+
 ## Layout
 
 | Project | Contents |
