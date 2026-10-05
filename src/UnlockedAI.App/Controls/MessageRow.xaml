@@ -59,6 +59,7 @@
 
             <!-- What the user typed is shown as typed; the model's reply is rendered as markdown. -->
             <ui:MarkdownView
+                x:Name="Body"
                 Margin="{StaticResource InsetMessageBody}"
                 IsPlainText="{x:Bind Message.IsUser, Mode=OneWay}"
                 Text="{x:Bind Message.Text, Mode=OneWay}" />

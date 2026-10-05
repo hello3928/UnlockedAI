@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using UnlockedAI.Controls;
 using UnlockedAI.ViewModels;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
@@ -115,6 +116,16 @@ public sealed partial class ChatView : UserControl
 
     private void ScrollToEnd() =>
         _scroller?.ChangeView(null, _scroller.ScrollableHeight, null, disableAnimation: true);
+
+    // A row that scrolls out of view waits in a queue to be reused. Until then it would keep its
+    // whole rendered message alive, so it is emptied here and filled again when it is next needed.
+    private void OnContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
+    {
+        if (args.InRecycleQueue && args.ItemContainer.ContentTemplateRoot is MessageRow row)
+        {
+            row.ReleaseContent();
+        }
+    }
 
     private void OnDragOver(object sender, DragEventArgs e)
     {

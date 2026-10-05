@@ -93,10 +93,4 @@ public sealed record AppError(
         AppErrorKind.InvalidInput,
         "Check your input",
         message);
-
-    public static AppError ToolFailed(string toolName, string? detail = null) => new(
-        AppErrorKind.ToolFailed,
-        "Tool failed",
-        $"The \"{toolName}\" tool didn't finish.",
-        detail);
 }

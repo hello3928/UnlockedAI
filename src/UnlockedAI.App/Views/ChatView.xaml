@@ -111,12 +111,17 @@
             AutomationProperties.Name="Messages"
             IsItemClickEnabled="False"
             ItemContainerStyle="{StaticResource PlainListItemStyle}"
+            ContainerContentChanging="OnContainerContentChanging"
             ItemTemplateSelector="{StaticResource ChatItemSelector}"
             ItemsSource="{x:Bind ViewModel.Messages, Mode=OneWay}"
             SelectionMode="None">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <ItemsStackPanel ItemsUpdatingScrollMode="KeepLastItemInView" />
+                    <!--
+                        CacheLength is how many screens of rows are kept built beyond the visible ones.
+                        With the default of 4, opening a long chat built about twice as many rows.
+                    -->
+                    <ItemsStackPanel CacheLength="1" ItemsUpdatingScrollMode="KeepLastItemInView" />
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
         </ListView>
