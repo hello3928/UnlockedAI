@@ -33,6 +33,11 @@ public sealed record AppSettings
 
     public IReadOnlySet<string> DisabledTools { get; init; } = new HashSet<string>();
 
+    /// <summary>True for an absolute http or https address, which is what Ollama listens on.</summary>
+    public static bool IsValidOllamaUrl(string? url) =>
+        Uri.TryCreate(url?.Trim(), UriKind.Absolute, out var uri)
+        && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+
     /// <summary>Returns a copy with every number pulled into its allowed range and blanks filled in.</summary>
     public AppSettings Normalized() => this with
     {

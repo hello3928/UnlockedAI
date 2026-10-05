@@ -9,9 +9,6 @@ public sealed class SettingsService(SettingsRepository repository)
 {
     public AppSettings Current { get; private set; } = new();
 
-    /// <summary>Raised after a successful save. May fire on any thread.</summary>
-    public event EventHandler? Changed;
-
     public async Task LoadAsync(CancellationToken cancellationToken = default)
     {
         Current = await repository.LoadAsync(cancellationToken).ConfigureAwait(false);
@@ -23,6 +20,5 @@ public sealed class SettingsService(SettingsRepository repository)
         await repository.SaveAsync(normalized, cancellationToken).ConfigureAwait(false);
 
         Current = normalized;
-        Changed?.Invoke(this, EventArgs.Empty);
     }
 }

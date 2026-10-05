@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:AppDialog
+    x:Class="UnlockedAI.Views.SettingsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="using:UnlockedAI.Controls"
+    Title="Settings"
+    CloseButtonText="Cancel"
+    IsPrimaryButtonEnabled="{x:Bind ViewModel.CanSave, Mode=OneWay}"
+    PrimaryButtonClick="OnSaveClick"
+    PrimaryButtonText="Save">
+
+    <StackPanel MinWidth="{StaticResource DialogContentWidth}" Spacing="{StaticResource Space4}">
+
+        <ui:ErrorMessage
+            DismissCommand="{x:Bind ViewModel.DismissErrorCommand}"
+            Error="{x:Bind ViewModel.Error, Mode=OneWay}" />
+
+        <ui:SectionHeader Text="Connection" />
+
+        <ui:FormRow
+            Description="Where Ollama is listening. The default is http://localhost:11434."
+            Error="{x:Bind ViewModel.OllamaUrlError, Mode=OneWay}"
+            Label="Ollama address">
+            <TextBox IsSpellCheckEnabled="False" Text="{x:Bind ViewModel.OllamaUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+        </ui:FormRow>
+
+        <ui:SectionHeader Text="Model" />
+
+        <ui:FormRow Description="Used for new chats. Each chat can switch model from its own menu." Label="Default model">
+            <ComboBox
+                HorizontalAlignment="Stretch"
+                ItemsSource="{x:Bind ViewModel.ModelNames}"
+                SelectedItem="{x:Bind ViewModel.DefaultModel, Mode=TwoWay}" />
+        </ui:FormRow>
+
+        <ui:FormRow Description="Optional. Instructions the model follows in every chat." Label="System prompt">
+            <TextBox
+                MinHeight="{StaticResource TextAreaMinHeight}"
+                MaxHeight="{StaticResource ComposerMaxHeight}"
+                AcceptsReturn="True"
+                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                Text="{x:Bind ViewModel.SystemPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                TextWrapping="Wrap" />
+        </ui:FormRow>
+
+        <ui:FormRow Description="Lower is more focused and repeatable. Higher is more varied." Label="{x:Bind ViewModel.TemperatureLabel, Mode=OneWay}">
+            <Slider
+                Maximum="2"
+                Minimum="0"
+                StepFrequency="0.1"
+                Value="{x:Bind ViewModel.Temperature, Mode=TwoWay}" />
+        </ui:FormRow>
+
+        <ui:FormRow Description="How much of the chat the model can see at once. Larger values use more memory." Label="Context length">
+            <ComboBox
+                HorizontalAlignment="Stretch"
+                ItemsSource="{x:Bind ViewModel.ContextLengths}"
+                SelectedItem="{x:Bind ViewModel.ContextLength, Mode=TwoWay}" />
+        </ui:FormRow>
+
+        <ui:FormRow Description="How long Ollama keeps the model in memory after a reply. A loaded model uses several gigabytes." Label="Unload model after">
+            <ComboBox
+                HorizontalAlignment="Stretch"
+                ItemsSource="{x:Bind ViewModel.KeepAliveOptions}"
+                SelectedItem="{x:Bind ViewModel.KeepAlive, Mode=TwoWay}" />
+        </ui:FormRow>
+    </StackPanel>
+</ui:AppDialog>

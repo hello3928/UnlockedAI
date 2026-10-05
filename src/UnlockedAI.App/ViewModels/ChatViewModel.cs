@@ -56,7 +56,9 @@ public sealed partial class ChatViewModel : ViewModelBase
         Draft = "";
         Models = [];
         Messages = [];
-        IsEmpty = true;
+
+        // Through ShowMessages, so that this first list also keeps IsEmpty up to date.
+        ShowMessages([]);
     }
 
     /// <summary>Raised when the open chat is created or gets new activity, so lists of chats can refresh.</summary>
@@ -151,6 +153,18 @@ public sealed partial class ChatViewModel : ViewModelBase
         ShowMessages([]);
         SelectModel(_settings.Current.DefaultModel);
         Started?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>Picks up saved settings: the model list may come from a new address, and new chats use the new default.</summary>
+    public async Task ApplySettingsAsync()
+    {
+        Error = null;
+        await RefreshModelsAsync(quiet: false);
+
+        if (_conversation is null)
+        {
+            SelectModel(_settings.Current.DefaultModel);
+        }
     }
 
     /// <summary>

@@ -101,6 +101,8 @@
     <x:Double x:Key="EmptyStateWidth">360</x:Double>
     <x:Double x:Key="ChipTextWidth">200</x:Double>
     <x:Double x:Key="ComposerMaxHeight">200</x:Double>
+    <x:Double x:Key="TextAreaMinHeight">96</x:Double>
+    <x:Double x:Key="DialogContentWidth">460</x:Double>
 
     <!-- Type ramp -->
     <x:Double x:Key="FontSizeCaption">12</x:Double>

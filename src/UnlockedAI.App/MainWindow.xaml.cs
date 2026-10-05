@@ -1,7 +1,10 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using UnlockedAI.Platform;
+using UnlockedAI.ViewModels;
+using UnlockedAI.Views;
 
 namespace UnlockedAI;
 
@@ -50,7 +53,13 @@ public sealed partial class MainWindow : Window
         args.Handled = true;
     }
 
-    private void OnSettingsRequested(object? sender, EventArgs e)
+    private async void OnSettingsRequested(object? sender, EventArgs e)
     {
+        // Built when asked for and dropped when closed; nothing about settings stays in memory.
+        var dialog = new SettingsDialog(new SettingsViewModel(_host.Settings, _host.Chat.Models));
+        if (await dialog.ShowAsync(Content.XamlRoot) == ContentDialogResult.Primary)
+        {
+            await _host.Chat.ApplySettingsAsync();
+        }
     }
 }
