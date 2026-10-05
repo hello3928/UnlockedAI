@@ -1,0 +1,18 @@
+# Build output
+bin/
+obj/
+artifacts/
+
+# IDE
+.vs/
+.idea/
+*.user
+*.suo
+
+# Local data. The app keeps its database in %LOCALAPPDATA%, but never commit one.
+*.db
+*.db-shm
+*.db-wal
+
+# Test results
+TestResults/

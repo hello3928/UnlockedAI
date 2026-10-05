@@ -1,0 +1,16 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+  </Configurations>
+  <Folder Name="/src/">
+    <Project Path="src/UnlockedAI.App/UnlockedAI.App.csproj" />
+    <Project Path="src/UnlockedAI.Core/UnlockedAI.Core.csproj">
+      <Platform Project="AnyCPU" />
+    </Project>
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/UnlockedAI.Tests/UnlockedAI.Tests.csproj">
+      <Platform Project="AnyCPU" />
+    </Project>
+  </Folder>
+</Solution>
