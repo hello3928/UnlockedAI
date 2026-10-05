@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using UnlockedAI.Platform;
 
 namespace UnlockedAI;
 
@@ -8,7 +9,18 @@ public partial class App : Application
 
     public App()
     {
-        InitializeComponent();
+        UnhandledException += (_, e) => CrashLog.Write(e.Exception);
+
+        try
+        {
+            InitializeComponent();
+        }
+        catch (Exception exception)
+        {
+            // A broken resource dictionary fails here, before any window exists to show it.
+            CrashLog.Write(exception);
+            throw;
+        }
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)

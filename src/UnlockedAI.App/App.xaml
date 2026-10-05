@@ -8,6 +8,11 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+                <!-- Order matters: tokens first, then the styles that read them. -->
+                <ResourceDictionary Source="ms-appx:///Theme/Tokens.xaml" />
+                <ResourceDictionary Source="ms-appx:///Theme/Text.xaml" />
+                <ResourceDictionary Source="ms-appx:///Theme/Buttons.xaml" />
+                <ResourceDictionary Source="ms-appx:///Theme/Containers.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

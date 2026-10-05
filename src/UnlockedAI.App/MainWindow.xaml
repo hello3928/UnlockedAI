@@ -3,6 +3,7 @@
     x:Class="UnlockedAI.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="using:UnlockedAI.Controls"
     Title="UnlockedAI">
 
     <Window.SystemBackdrop>
@@ -11,16 +12,83 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="40" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Grid x:Name="AppTitleBar" Grid.Row="0">
+        <Grid
+            x:Name="AppTitleBar"
+            Grid.Row="0"
+            Height="{StaticResource TitleBarHeight}"
+            Padding="{StaticResource InsetTitleBar}">
             <TextBlock
-                Margin="16,0,0,0"
                 VerticalAlignment="Center"
-                Style="{ThemeResource CaptionTextBlockStyle}"
+                Style="{StaticResource CaptionText}"
                 Text="UnlockedAI" />
         </Grid>
+
+        <!-- Temporary: shows every control class so the theme can be checked. Replaced by the real layout next. -->
+        <ScrollViewer Grid.Row="1" Background="{StaticResource LayerBrush}">
+            <StackPanel
+                MaxWidth="{StaticResource ReadingWidth}"
+                Padding="{StaticResource Inset6}"
+                Spacing="{StaticResource Space4}">
+
+                <ui:SectionHeader Text="Buttons" />
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
+                    <ui:AppButton Content="Primary" Icon="Send" Variant="Primary" />
+                    <ui:AppButton Content="Secondary" />
+                    <ui:AppButton Content="Ghost" Icon="Attach" Variant="Ghost" />
+                    <ui:AppButton Content="Danger" Icon="Delete" Variant="Danger" />
+                    <ui:IconButton Icon="Settings" Label="Settings" />
+                    <ui:IconButton Icon="Copy" IsCompact="True" Label="Copy" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
+                    <ui:AppButton Content="Primary" IsEnabled="False" Variant="Primary" />
+                    <ui:AppButton Content="Secondary" IsEnabled="False" />
+                    <ui:AppButton Content="Ghost" Icon="Attach" IsEnabled="False" Variant="Ghost" />
+                    <ui:AppButton Content="Working" IsBusy="True" Variant="Primary" />
+                    <ui:AppButton Content="Working" IsBusy="True" />
+                    <ui:BusyIndicator IsActive="True" />
+                </StackPanel>
+
+                <ui:SectionHeader Text="Notices" />
+                <ui:Notice Title="Info" Message="Tools are off for this model." />
+                <ui:Notice Title="Saved" Message="Settings were saved." Severity="Success" />
+                <ui:Notice
+                    Title="Auto-approve is on"
+                    ActionText="Turn off"
+                    IsDismissible="True"
+                    Message="Commands and file writes run without asking."
+                    Severity="Warning" />
+                <ui:ErrorMessage x:Name="SampleError" />
+
+                <ui:SectionHeader Text="Card and form" />
+                <ui:Card>
+                    <StackPanel Spacing="{StaticResource Space4}">
+                        <ui:FormRow Description="Where Ollama is listening." Label="Ollama address">
+                            <TextBox Text="http://localhost:11434" />
+                        </ui:FormRow>
+                        <ui:FormRow Error="Enter a number between 0 and 2." Label="Temperature">
+                            <TextBox Text="9" />
+                        </ui:FormRow>
+                    </StackPanel>
+                </ui:Card>
+
+                <ui:SectionHeader Text="Chips" />
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
+                    <ui:Chip Detail="24 KB" Icon="Document" IsRemovable="True" Text="quarterly-report.pdf" />
+                    <ui:Chip Icon="Document" Text="notes.md" />
+                </StackPanel>
+
+                <ui:Card>
+                    <ui:EmptyState
+                        Title="No chats yet"
+                        ActionText="New chat"
+                        Icon="Chat"
+                        Message="Start a chat and it will be saved here." />
+                </ui:Card>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Window>
