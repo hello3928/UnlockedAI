@@ -33,7 +33,7 @@ public abstract partial class ViewModelBase : ObservableObject
     }
 
     /// <summary>Shows the failure to the user. A cancellation is the user's own doing and is not shown.</summary>
-    protected void Report(Exception exception)
+    public void Report(Exception exception)
     {
         var error = ErrorMapper.Map(exception);
         if (error.Kind == AppErrorKind.Cancelled)

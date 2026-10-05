@@ -3,6 +3,8 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using UnlockedAI.ViewModels;
+using Windows.ApplicationModel.DataTransfer;
+using Windows.Storage;
 
 namespace UnlockedAI.Views;
 
@@ -113,6 +115,44 @@ public sealed partial class ChatView : UserControl
 
     private void ScrollToEnd() =>
         _scroller?.ChangeView(null, _scroller.ScrollableHeight, null, disableAnimation: true);
+
+    private void OnDragOver(object sender, DragEventArgs e)
+    {
+        if (e.DataView.Contains(StandardDataFormats.StorageItems))
+        {
+            e.AcceptedOperation = DataPackageOperation.Copy;
+            e.DragUIOverride.Caption = "Attach";
+        }
+    }
+
+    private async void OnDrop(object sender, DragEventArgs e)
+    {
+        if (ViewModel is not { } viewModel || !e.DataView.Contains(StandardDataFormats.StorageItems))
+        {
+            return;
+        }
+
+        // The drop source waits for this handler; the deferral lets it wait for the file list too.
+        List<string> paths;
+        var deferral = e.GetDeferral();
+        try
+        {
+            var items = await e.DataView.GetStorageItemsAsync();
+            paths = items.OfType<StorageFile>().Select(file => file.Path).ToList();
+        }
+        catch (Exception exception)
+        {
+            viewModel.Report(exception);
+            return;
+        }
+        finally
+        {
+            deferral.Complete();
+        }
+
+        await viewModel.AddFilesAsync(paths);
+        FocusComposer();
+    }
 
     private void OnEscapeInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {

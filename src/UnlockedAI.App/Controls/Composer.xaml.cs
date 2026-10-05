@@ -29,6 +29,21 @@ public sealed partial class Composer : UserControl
     public static readonly DependencyProperty IsBusyProperty =
         Dp.Register<Composer, bool>(nameof(IsBusy), false, (composer, _) => composer.UpdateAction());
 
+    public static readonly DependencyProperty AttachmentsProperty =
+        Dp.Register<Composer, object?>(nameof(Attachments), null);
+
+    public static readonly DependencyProperty HasAttachmentsProperty =
+        Dp.Register<Composer, bool>(nameof(HasAttachments), false);
+
+    public static readonly DependencyProperty IsAttachingProperty =
+        Dp.Register<Composer, bool>(nameof(IsAttaching), false);
+
+    public static readonly DependencyProperty AttachCommandProperty =
+        Dp.Register<Composer, ICommand?>(nameof(AttachCommand), null);
+
+    public static readonly DependencyProperty RemoveAttachmentCommandProperty =
+        Dp.Register<Composer, ICommand?>(nameof(RemoveAttachmentCommand), null);
+
     public Composer()
     {
         InitializeComponent();
@@ -65,8 +80,50 @@ public sealed partial class Composer : UserControl
         set => SetValue(IsBusyProperty, value);
     }
 
+    /// <summary>The files waiting to be sent, shown as chips above the message box.</summary>
+    public object? Attachments
+    {
+        get => GetValue(AttachmentsProperty);
+        set => SetValue(AttachmentsProperty, value);
+    }
+
+    public bool HasAttachments
+    {
+        get => (bool)GetValue(HasAttachmentsProperty);
+        set => SetValue(HasAttachmentsProperty, value);
+    }
+
+    /// <summary>True while a file is being read; the attach button shows progress.</summary>
+    public bool IsAttaching
+    {
+        get => (bool)GetValue(IsAttachingProperty);
+        set => SetValue(IsAttachingProperty, value);
+    }
+
+    public ICommand? AttachCommand
+    {
+        get => (ICommand?)GetValue(AttachCommandProperty);
+        set => SetValue(AttachCommandProperty, value);
+    }
+
+    /// <summary>Called with the attachment whose chip was removed.</summary>
+    public ICommand? RemoveAttachmentCommand
+    {
+        get => (ICommand?)GetValue(RemoveAttachmentCommandProperty);
+        set => SetValue(RemoveAttachmentCommandProperty, value);
+    }
+
     /// <summary>Puts the caret in the message box.</summary>
     public void FocusInput() => Input.Focus(FocusState.Programmatic);
+
+    private void OnAttachmentRemoved(object? sender, EventArgs e)
+    {
+        if (sender is Chip chip && RemoveAttachmentCommand is { } command)
+        {
+            command.Execute(chip.RemoveParameter);
+            FocusInput();
+        }
+    }
 
     private static bool IsShiftDown() =>
         InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift).HasFlag(CoreVirtualKeyStates.Down);

@@ -6,6 +6,7 @@ using Microsoft.UI.Dispatching;
 using UnlockedAI.Core.Chat;
 using UnlockedAI.Core.Data;
 using UnlockedAI.Core.Errors;
+using UnlockedAI.Core.Files;
 using UnlockedAI.Core.Models;
 using UnlockedAI.Core.Ollama;
 using UnlockedAI.Platform;
@@ -16,12 +17,18 @@ namespace UnlockedAI.ViewModels;
 public sealed partial class ChatViewModel : ViewModelBase
 {
     private const int TitleLength = 48;
+    private const int MaxAttachments = 5;
+
+    // Rough rule of thumb for English text; good enough to warn before the model silently drops part of a file.
+    private const int CharsPerToken = 4;
 
     private readonly ConversationRepository _conversations;
     private readonly MessageRepository _messages;
     private readonly ChatSession _session;
     private readonly IOllamaClient _ollama;
     private readonly SettingsService _settings;
+    private readonly AttachmentService _attachmentService;
+    private readonly FilePickerService _filePicker;
     private readonly UiBatcher<ChatEvent> _events;
 
     // The reply being written. Text gathers here and reaches the screen once per batch.
@@ -44,15 +51,21 @@ public sealed partial class ChatViewModel : ViewModelBase
         MessageRepository messages,
         ChatSession session,
         IOllamaClient ollama,
-        SettingsService settings)
+        SettingsService settings,
+        AttachmentService attachmentService,
+        FilePickerService filePicker)
     {
         _conversations = conversations;
         _messages = messages;
         _session = session;
         _ollama = ollama;
         _settings = settings;
+        _attachmentService = attachmentService;
+        _filePicker = filePicker;
         _events = new UiBatcher<ChatEvent>(DispatcherQueue.GetForCurrentThread(), Apply, FlushLiveText);
 
+        PendingAttachments.CollectionChanged += (_, _) => OnPendingAttachmentsChanged();
+        AttachmentWarning = "";
         Draft = "";
         Models = [];
         Messages = [];
@@ -99,7 +112,23 @@ public sealed partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsEmpty { get; set; }
 
-    private bool CanSend => !IsGenerating && !string.IsNullOrWhiteSpace(Draft);
+    /// <summary>Files read and waiting to go out with the next message.</summary>
+    public ObservableCollection<AttachmentViewModel> PendingAttachments { get; } = [];
+
+    [ObservableProperty]
+    public partial bool HasPendingAttachments { get; set; }
+
+    /// <summary>True while a picked or dropped file is being read.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SendCommand))]
+    public partial bool IsAttaching { get; set; }
+
+    /// <summary>Set when the waiting files hold more text than the model can take in. Empty otherwise.</summary>
+    [ObservableProperty]
+    public partial string AttachmentWarning { get; set; }
+
+    private bool CanSend =>
+        !IsGenerating && !IsAttaching && (!string.IsNullOrWhiteSpace(Draft) || PendingAttachments.Count > 0);
 
     /// <summary>True when the chat ends with something the model hasn't answered yet.</summary>
     private bool IsAwaitingReply => _conversation is not null && Messages.LastOrDefault() is { IsUser: true };
@@ -135,6 +164,7 @@ public sealed partial class ChatViewModel : ViewModelBase
             _conversation = conversation;
             Draft = "";
             Error = null;
+            PendingAttachments.Clear();
             ShowMessages(stored.Where(IsShown).Select(message => new MessageViewModel(message)));
             SelectModel(conversation.Model);
             Opened?.Invoke(this, EventArgs.Empty);
@@ -150,6 +180,7 @@ public sealed partial class ChatViewModel : ViewModelBase
         _conversation = null;
         Draft = "";
         Error = null;
+        PendingAttachments.Clear();
         ShowMessages([]);
         SelectModel(_settings.Current.DefaultModel);
         Started?.Invoke(this, EventArgs.Empty);
@@ -193,31 +224,99 @@ public sealed partial class ChatViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// Reads files and adds them to the next message. A file that can't be used is reported and
+    /// skipped; the rest are still added.
+    /// </summary>
+    public async Task AddFilesAsync(IReadOnlyList<string> paths)
+    {
+        if (paths.Count == 0)
+        {
+            return;
+        }
+
+        Error = null;
+        IsAttaching = true;
+        try
+        {
+            foreach (var path in paths)
+            {
+                if (PendingAttachments.Count >= MaxAttachments)
+                {
+                    Error = AppError.InvalidInput($"A message can carry up to {MaxAttachments} files. The rest were left out.");
+                    break;
+                }
+
+                try
+                {
+                    PendingAttachments.Add(new AttachmentViewModel(await _attachmentService.ReadAsync(path)));
+                }
+                catch (Exception exception)
+                {
+                    Report(exception);
+                }
+            }
+        }
+        finally
+        {
+            IsAttaching = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task AttachAsync()
+    {
+        try
+        {
+            await AddFilesAsync(await _filePicker.PickFilesAsync());
+        }
+        catch (Exception exception)
+        {
+            Report(exception);
+        }
+    }
+
+    [RelayCommand]
+    private void RemoveAttachment(AttachmentViewModel? attachment)
+    {
+        if (attachment is not null)
+        {
+            PendingAttachments.Remove(attachment);
+        }
+    }
+
     [RelayCommand(CanExecute = nameof(CanSend))]
     private Task SendAsync()
     {
         var text = Draft.Trim();
+        var files = PendingAttachments.ToList();
         Draft = "";
+        PendingAttachments.Clear();
 
         return Generate(async cancellationToken =>
         {
             try
             {
                 _conversation ??= await _conversations.CreateAsync(
-                    MakeTitle(text),
+                    MakeTitle(text.Length > 0 ? text : files[0].Name),
                     SelectedModel?.Name ?? _settings.Current.DefaultModel,
                     cancellationToken);
 
                 var saved = await _messages.AppendAsync(
                     _conversation.Id,
-                    new NewMessage(ChatRole.User, text),
+                    new NewMessage(ChatRole.User, text) { Attachments = [.. files.Select(file => file.Pending!)] },
                     cancellationToken);
                 Messages.Add(new MessageViewModel(saved));
             }
             catch
             {
-                // Nothing was sent, so give the text back instead of losing it.
+                // Nothing was sent, so give the text and files back instead of losing them.
                 Draft = text;
+                foreach (var file in files)
+                {
+                    PendingAttachments.Add(file);
+                }
+
                 throw;
             }
         });
@@ -257,7 +356,21 @@ public sealed partial class ChatViewModel : ViewModelBase
     }
 
     private static bool IsShown(ChatMessage message) =>
-        message.Role is ChatRole.User or ChatRole.Assistant && message.Content.Length > 0;
+        message.Role is ChatRole.User or ChatRole.Assistant
+        && (message.Content.Length > 0 || message.Attachments.Count > 0);
+
+    private void OnPendingAttachmentsChanged()
+    {
+        HasPendingAttachments = PendingAttachments.Count > 0;
+        SendCommand.NotifyCanExecuteChanged();
+
+        var contextLength = _settings.Current.ContextLength;
+        var fileTokens = PendingAttachments.Sum(file => file.Pending?.Text.Length ?? 0) / CharsPerToken;
+        AttachmentWarning = fileTokens > contextLength
+            ? $"These files hold about {fileTokens:N0} tokens, more than the context length of {contextLength:N0}. "
+              + "The model will only see part of them. You can raise the context length in Settings."
+            : "";
+    }
 
     private static string MakeTitle(string firstMessage)
     {

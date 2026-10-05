@@ -15,7 +15,7 @@ public sealed partial class MessageViewModel : ObservableObject
     public MessageViewModel(ChatMessage message)
         : this(message.Role, message.Content)
     {
-        Attachments = message.Attachments;
+        Attachments = [.. message.Attachments.Select(attachment => new AttachmentViewModel(attachment))];
     }
 
     public ChatRole Role { get; }
@@ -24,7 +24,9 @@ public sealed partial class MessageViewModel : ObservableObject
 
     public string RoleLabel => IsUser ? "You" : "Assistant";
 
-    public IReadOnlyList<Attachment> Attachments { get; } = [];
+    public IReadOnlyList<AttachmentViewModel> Attachments { get; } = [];
+
+    public bool HasAttachments => Attachments.Count > 0;
 
     [ObservableProperty]
     public partial string Text { get; set; }

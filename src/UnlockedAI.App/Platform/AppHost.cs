@@ -1,5 +1,6 @@
 using UnlockedAI.Core.Chat;
 using UnlockedAI.Core.Data;
+using UnlockedAI.Core.Files;
 using UnlockedAI.Core.Ollama;
 using UnlockedAI.ViewModels;
 
@@ -26,11 +27,13 @@ internal sealed class AppHost : IDisposable
         _ollama = new OllamaClient(Settings);
 
         var session = new ChatSession(_ollama, messages, attachments, Settings);
-        Chat = new ChatViewModel(conversations, messages, session, _ollama, Settings);
+        Chat = new ChatViewModel(conversations, messages, session, _ollama, Settings, new AttachmentService(), FilePicker);
         Shell = new ShellViewModel(conversations, Chat);
     }
 
     public SettingsService Settings { get; }
+
+    public FilePickerService FilePicker { get; } = new();
 
     public ChatViewModel Chat { get; }
 

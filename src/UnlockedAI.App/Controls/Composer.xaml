@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="using:UnlockedAI.Controls"
+    xmlns:vm="using:UnlockedAI.ViewModels"
     IsTabStop="False">
 
     <Border
@@ -25,45 +26,81 @@
             </VisualStateGroup>
         </VisualStateManager.VisualStateGroups>
 
-        <Grid ColumnSpacing="{StaticResource Space2}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+        <StackPanel Spacing="{StaticResource Space2}">
 
-            <!-- The box itself is borderless; the surrounding border shows focus instead. -->
-            <TextBox
-                x:Name="Input"
-                Grid.Column="0"
-                MaxHeight="{StaticResource ComposerMaxHeight}"
-                VerticalAlignment="Center"
-                AcceptsReturn="True"
-                AutomationProperties.Name="Message"
-                BorderThickness="{StaticResource Inset0}"
-                GotFocus="OnInputGotFocus"
-                LostFocus="OnInputLostFocus"
-                PlaceholderText="{x:Bind PlaceholderText, Mode=OneWay}"
-                PreviewKeyDown="OnInputPreviewKeyDown"
-                ScrollViewer.VerticalScrollBarVisibility="Auto"
-                Text="{x:Bind Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                TextWrapping="Wrap">
-                <TextBox.Resources>
-                    <StaticResource x:Key="TextControlBackground" ResourceKey="TransparentBrush" />
-                    <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="TransparentBrush" />
-                    <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="TransparentBrush" />
-                    <StaticResource x:Key="TextControlBorderBrush" ResourceKey="TransparentBrush" />
-                    <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="TransparentBrush" />
-                    <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="TransparentBrush" />
-                    <StaticResource x:Key="TextControlBorderThemeThicknessFocused" ResourceKey="Inset0" />
-                </TextBox.Resources>
-            </TextBox>
+            <!-- Files waiting to be sent with the next message. -->
+            <ItemsControl
+                AutomationProperties.Name="Attached files"
+                IsTabStop="False"
+                ItemsSource="{x:Bind Attachments, Mode=OneWay}"
+                Visibility="{x:Bind ui:Visible.If(HasAttachments), Mode=OneWay}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <ui:WrapPanel Spacing="{StaticResource Space2}" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:AttachmentViewModel">
+                        <ui:Chip
+                            Detail="{x:Bind Detail}"
+                            Icon="Document"
+                            IsRemovable="True"
+                            RemoveParameter="{x:Bind}"
+                            Removed="OnAttachmentRemoved"
+                            Text="{x:Bind Name}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
-            <!-- One button that is Send or Stop. Two buttons swapping places would drop keyboard focus. -->
-            <ui:IconButton
-                x:Name="ActionButton"
-                Grid.Column="1"
-                VerticalAlignment="Bottom"
-                Click="OnActionClick" />
-        </Grid>
+            <Grid ColumnSpacing="{StaticResource Space2}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <ui:IconButton
+                    Grid.Column="0"
+                    VerticalAlignment="Bottom"
+                    Command="{x:Bind AttachCommand, Mode=OneWay}"
+                    Icon="Attach"
+                    IsBusy="{x:Bind IsAttaching, Mode=OneWay}"
+                    Label="Attach files" />
+
+                <!-- The box itself is borderless; the surrounding border shows focus instead. -->
+                <TextBox
+                    x:Name="Input"
+                    Grid.Column="1"
+                    MaxHeight="{StaticResource ComposerMaxHeight}"
+                    VerticalAlignment="Center"
+                    AcceptsReturn="True"
+                    AutomationProperties.Name="Message"
+                    BorderThickness="{StaticResource Inset0}"
+                    GotFocus="OnInputGotFocus"
+                    LostFocus="OnInputLostFocus"
+                    PlaceholderText="{x:Bind PlaceholderText, Mode=OneWay}"
+                    PreviewKeyDown="OnInputPreviewKeyDown"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    Text="{x:Bind Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap">
+                    <TextBox.Resources>
+                        <StaticResource x:Key="TextControlBackground" ResourceKey="TransparentBrush" />
+                        <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="TransparentBrush" />
+                        <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="TransparentBrush" />
+                        <StaticResource x:Key="TextControlBorderBrush" ResourceKey="TransparentBrush" />
+                        <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="TransparentBrush" />
+                        <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="TransparentBrush" />
+                        <StaticResource x:Key="TextControlBorderThemeThicknessFocused" ResourceKey="Inset0" />
+                    </TextBox.Resources>
+                </TextBox>
+
+                <!-- One button that is Send or Stop. Two buttons swapping places would drop keyboard focus. -->
+                <ui:IconButton
+                    x:Name="ActionButton"
+                    Grid.Column="2"
+                    VerticalAlignment="Bottom"
+                    Click="OnActionClick" />
+            </Grid>
+        </StackPanel>
     </Border>
 </UserControl>

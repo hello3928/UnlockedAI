@@ -32,6 +32,7 @@ public sealed partial class MainWindow : Window
             presenter.PreferredMinimumHeight = MinimumHeight;
         }
 
+        host.FilePicker.SetOwner(AppWindow.Id);
         Sidebar.ViewModel = host.Shell;
         Chat.ViewModel = host.Chat;
 

@@ -11,11 +11,17 @@
         <KeyboardAccelerator Key="Escape" Invoked="OnEscapeInvoked" />
     </UserControl.KeyboardAccelerators>
 
-    <Grid>
+    <!-- The transparent background makes the whole column a drop target, not just its children. -->
+    <Grid
+        AllowDrop="True"
+        Background="{StaticResource TransparentBrush}"
+        DragOver="OnDragOver"
+        Drop="OnDrop">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -62,11 +68,25 @@
             Message="Enter sends. Shift+Enter adds a line."
             Visibility="{x:Bind ui:Visible.If(ViewModel.IsEmpty), Mode=OneWay}" />
 
-        <ui:Composer
-            x:Name="MessageComposer"
+        <ui:Notice
+            Title="Too much text for the model"
             Grid.Row="3"
             MaxWidth="{StaticResource ReadingWidth}"
+            Margin="{StaticResource InsetPage}"
+            Message="{x:Bind ViewModel.AttachmentWarning, Mode=OneWay}"
+            Severity="Warning"
+            Visibility="{x:Bind ui:Visible.IfText(ViewModel.AttachmentWarning), Mode=OneWay}" />
+
+        <ui:Composer
+            x:Name="MessageComposer"
+            Grid.Row="4"
+            MaxWidth="{StaticResource ReadingWidth}"
             Margin="{StaticResource InsetPageBottom}"
+            AttachCommand="{x:Bind ViewModel.AttachCommand, Mode=OneWay}"
+            Attachments="{x:Bind ViewModel.PendingAttachments, Mode=OneWay}"
+            HasAttachments="{x:Bind ViewModel.HasPendingAttachments, Mode=OneWay}"
+            IsAttaching="{x:Bind ViewModel.IsAttaching, Mode=OneWay}"
+            RemoveAttachmentCommand="{x:Bind ViewModel.RemoveAttachmentCommand, Mode=OneWay}"
             IsBusy="{x:Bind ViewModel.IsGenerating, Mode=OneWay}"
             PlaceholderText="{x:Bind ViewModel.ComposerPlaceholder, Mode=OneWay}"
             SendCommand="{x:Bind ViewModel.SendCommand, Mode=OneWay}"

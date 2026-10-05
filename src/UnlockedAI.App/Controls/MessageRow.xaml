@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="using:UnlockedAI.Controls"
+    xmlns:vm="using:UnlockedAI.ViewModels"
     IsTabStop="False">
 
     <Border
@@ -35,6 +36,26 @@
                     Text="{x:Bind Message.Text, Mode=OneWay}"
                     Visibility="{x:Bind ui:Visible.IfNot(Message.IsStreaming), Mode=OneWay}" />
             </Grid>
+
+            <ItemsControl
+                AutomationProperties.Name="Attached files"
+                IsTabStop="False"
+                ItemsSource="{x:Bind Message.Attachments, Mode=OneWay}"
+                Visibility="{x:Bind ui:Visible.If(Message.HasAttachments), Mode=OneWay}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <ui:WrapPanel Spacing="{StaticResource Space2}" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:AttachmentViewModel">
+                        <ui:Chip
+                            Detail="{x:Bind Detail}"
+                            Icon="Document"
+                            Text="{x:Bind Name}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
             <!-- What the user typed is shown as typed; the model's reply is rendered as markdown. -->
             <ui:MarkdownView
