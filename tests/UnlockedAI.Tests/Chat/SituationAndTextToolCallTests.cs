@@ -53,6 +53,15 @@ public class SituationAndTextToolCallTests
         Here's a JSON for a function call with its proper arguments that best answers the given prompt:
         {"name": "run_command", "parameters": {"command": "dir"}}
         """)]
+    [InlineData("""
+        ## Step 1
+
+        Let's run the command now.
+
+        ```json
+        {"name": "run_command", "parameters": {"command": "dir"}}
+        ```
+        """)]
     public void Tool_call_written_as_text_is_recognised(string reply)
     {
         Assert.True(TextToolCall.TryParse(reply, Offered, out var call));

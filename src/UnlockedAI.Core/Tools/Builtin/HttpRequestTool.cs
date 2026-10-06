@@ -32,13 +32,29 @@ public sealed class HttpRequestTool(WebReader web) : ToolBase
         }
         """;
 
-    // A request to this PC or the local network can drive a router or a local service, so it waits for approval.
-    public override ToolRisk RiskFor(JsonElement arguments) =>
-        Uri.TryCreate(Text(arguments, "url"), UriKind.Absolute, out var uri) && LocalAddress.IsLocal(uri)
+    // Waits for approval when the request sends data out or acts on another system: any method other
+    // than GET or HEAD, or any request with a body. A request to this PC or the local network also
+    // waits, since it can drive a router or a local service. A plain read of a public URL does not.
+    public override ToolRisk RiskFor(JsonElement arguments)
+    {
+        var method = MethodOf(arguments);
+        if (method is not ("GET" or "HEAD") || Text(arguments, "body").Length > 0)
+        {
+            return ToolRisk.ChangesPc;
+        }
+
+        return Uri.TryCreate(Text(arguments, "url"), UriKind.Absolute, out var uri) && LocalAddress.IsLocal(uri)
             ? ToolRisk.ChangesPc
             : ToolRisk.ReadOnly;
+    }
 
-    public override string Describe(JsonElement arguments) => $"{MethodOf(arguments)} {Text(arguments, "url")}";
+    // Shows the body as well, so an approval card reveals exactly what would be sent.
+    public override string Describe(JsonElement arguments)
+    {
+        var line = $"{MethodOf(arguments)} {Text(arguments, "url")}";
+        var body = Text(arguments, "body");
+        return body.Length > 0 ? $"{line}\n{body}" : line;
+    }
 
     protected override async Task<string> ExecuteAsync(JsonElement arguments, CancellationToken cancellationToken)
     {

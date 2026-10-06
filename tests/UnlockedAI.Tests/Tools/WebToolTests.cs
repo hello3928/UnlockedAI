@@ -47,6 +47,29 @@ public class WebToolTests
     }
 
     [Fact]
+    public void Web_requests_that_send_data_out_need_approval_even_to_a_public_host()
+    {
+        using var web = new WebReader(StubHttpHandler.Json("{}"));
+        var tool = new HttpRequestTool(web);
+
+        Assert.Equal(ToolRisk.ReadOnly, tool.RiskFor(Args(new { url = "https://api.example.com/items" })));
+        Assert.Equal(ToolRisk.ChangesPc, tool.RiskFor(Args(new { url = "https://api.example.com/items", method = "POST", body = "x" })));
+        Assert.Equal(ToolRisk.ChangesPc, tool.RiskFor(Args(new { url = "https://api.example.com/items", method = "delete" })));
+        // A GET that carries a body is still sending data out.
+        Assert.Equal(ToolRisk.ChangesPc, tool.RiskFor(Args(new { url = "https://api.example.com/items", body = "payload" })));
+    }
+
+    [Fact]
+    public void A_request_with_a_body_shows_the_body_on_its_approval_card()
+    {
+        using var web = new WebReader(StubHttpHandler.Json("{}"));
+        var summary = new HttpRequestTool(web).Describe(Args(new { url = "https://api.example.com/", method = "POST", body = "name=pen" }));
+
+        Assert.Contains("POST https://api.example.com/", summary);
+        Assert.Contains("name=pen", summary);
+    }
+
+    [Fact]
     public async Task Page_is_reduced_to_its_readable_text()
     {
         using var web = new WebReader(Html(
